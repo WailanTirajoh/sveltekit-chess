@@ -179,10 +179,41 @@
 						if (startVertical > finalVertical) return false;
 
 						// Can move upward twice on first start
-						if (startVertical === 2 && finalVertical - startVertical <= 2) return true;
+						if (startVertical === 2 && finalVertical - startVertical <= 2) {
+							enemy =
+								boardPosition[`${3}_${finalHorizontal}`] ||
+								boardPosition[`${4}_${finalHorizontal}`];
+							if (!enemy) return true;
+						}
 
 						// Can move upward once
 						if (finalVertical - startVertical === 1) {
+							if (!enemy) return true;
+						}
+					}
+				} else {
+					// Check bottom left & bottom right has enemy or not
+					if (finalHorizontal - startHorizontal === 1 || startHorizontal - finalHorizontal === 1) {
+						if (startVertical - finalVertical === 1) {
+							if (enemy) return true;
+						}
+					}
+
+					if (startHorizontal === finalHorizontal) {
+						// Can only move on the same horizontal position
+						// Cant move backwards
+						if (startVertical < finalVertical) return false;
+
+						// Can move bottom twice on first start
+						if (startVertical === 7 && startVertical - finalVertical <= 2) {
+							enemy =
+								boardPosition[`${6}_${finalHorizontal}`] ||
+								boardPosition[`${5}_${finalHorizontal}`];
+							if (!enemy) return true;
+						}
+
+						// Can move bottom once
+						if (startVertical - finalVertical === 1) {
 							if (!enemy) return true;
 						}
 					}
@@ -198,13 +229,13 @@
 	 */
 	let boardPosition: Record<string, PlayerPiece> = {
 		// White starting position
-		'6_2': {
+		'1_1': {
 			piece: chessPiece.rook,
 			player: 1
 		},
-		'3_2': {
+		'1_2': {
 			piece: chessPiece.knight,
-			player: 2
+			player: 1
 		},
 		'1_3': {
 			piece: chessPiece.bishop,
@@ -268,10 +299,10 @@
 			piece: chessPiece.rook,
 			player: 2
 		},
-		// '8_2': {
-		// 	piece: chessPiece.knight,
-		// 	player: 2
-		// },
+		'8_2': {
+			piece: chessPiece.knight,
+			player: 2
+		},
 		'8_3': {
 			piece: chessPiece.bishop,
 			player: 2
