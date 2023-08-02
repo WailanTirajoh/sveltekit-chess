@@ -20,19 +20,23 @@
 		8: 'h'
 	};
 
+	type Player = 1 | 2;
+
 	// We will create rule interface latter when we get into this (Should be after drag & drop)
 	interface Piece {
 		name: PieceName;
 		icon: string;
-		rule: () => boolean;
+		rule: (startPosition: string, finalPosition: string, player: Player) => boolean;
 	}
 
 	interface PlayerPiece {
 		piece: Piece;
-		player: 1 | 2;
+		player: Player;
 	}
 
 	type PieceName = 'rook' | 'knight' | 'bishop' | 'queen' | 'king' | 'pawn';
+	const PLAYER_WHITE = 1;
+	const PLAYER_BLACK = 2;
 	const chessPiece: Record<PieceName, Piece> = {
 		rook: {
 			name: 'rook',
@@ -62,7 +66,41 @@
 		pawn: {
 			name: 'pawn',
 			icon: 'fa-solid:chess-pawn',
-			rule: () => true
+			rule: (startPosition, finalPosition, player: 1 | 2) => {
+				const [startVertical, startHorizontal] = startPosition.split('_').map(Number);
+				const [finalVertical, finalHorizontal] = finalPosition.split('_').map(Number);
+				let enemy: PlayerPiece | null = null;
+				if (boardPosition[`${finalVertical}_${finalHorizontal}`]) {
+					if (boardPosition[`${finalVertical}_${finalHorizontal}`].player !== player) {
+						enemy = boardPosition[`${finalVertical}_${finalHorizontal}`];
+					}
+				}
+
+				if (player === PLAYER_WHITE) {
+					// Check up left & up right has enemy or not
+					if (finalHorizontal - startHorizontal === 1 || startHorizontal - finalHorizontal === 1) {
+						if (finalVertical - startVertical === 1) {
+							if (enemy) return true;
+						}
+					}
+
+					if (startHorizontal === finalHorizontal) {
+						// Can only move on the same horizontal position
+						// Cant move backwards
+						if (startVertical > finalVertical) return false;
+
+						// Can move upward twice on first start
+						if (startVertical === 2 && finalVertical - startVertical <= 2) return true;
+
+						// Can move upward once
+						if (finalVertical - startVertical === 1) {
+							if (!enemy) return true;
+						}
+					}
+				}
+
+				return false;
+			}
 		}
 	};
 
@@ -208,20 +246,33 @@
 	}
 	let activePiece: ActivePiece | null = null;
 
-	function move(piece: ActivePiece | null, finalPosition: string) {
-		if (!piece) return;
-		if (piece.position === finalPosition) return;
+	function moveRule(piece: ActivePiece | null, finalPosition: string) {
+		if (!piece) return false;
 
-        console.log(piece)
+		// Dont do anything if its on same place
+		if (piece.position === finalPosition) return false;
+
 		// Piece cant eat his own piece xD
-		if (piece.player === boardPosition[finalPosition]?.player) return;
+		if (piece.player === boardPosition[finalPosition]?.player) return false;
 
+		// Stop when violating the rules
+		if (!piece.piece.rule(piece.position, finalPosition, piece.player)) return false;
+
+		return true;
+	}
+
+	function move(piece: ActivePiece | null, finalPosition: string) {
+		if (!moveRule(piece, finalPosition)) return;
+		if (!piece) return;
+		// Update board position
 		boardPosition[finalPosition] = {
 			piece: piece.piece,
 			player: piece.player
 		};
 
 		delete boardPosition[piece.position];
+
+		activePiece = null;
 	}
 
 	function setActivePiece(piece: PlayerPiece, startPosition: string) {
@@ -239,7 +290,14 @@
 					on:click={() => move(activePiece, `${vertical}_${horizontal}`)}
 					class="{isOdd(vertical)
 						? 'odd:bg-[#e9edcc] even:bg-[#779954]'
-						: 'odd:bg-[#779954] even:bg-[#e9edcc]'} h-16 w-16 relative flex justify-center items-center"
+						: 'odd:bg-[#779954] even:bg-[#e9edcc]'} h-16 w-16 relative flex justify-center items-center {activePiece?.position ===
+					`${vertical}_${horizontal}`
+						? '!bg-gray-600 !bg-opacity-60'
+						: ''}
+                        {moveRule(activePiece, `${vertical}_${horizontal}`)
+						? '!bg-green-600 !bg-opacity-30'
+						: ''}
+                        "
 				>
 					{#if Object.keys(boardPosition).includes(`${vertical}_${horizontal}`)}
 						<div
