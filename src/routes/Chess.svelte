@@ -46,7 +46,45 @@
 		knight: {
 			name: 'knight',
 			icon: 'fa6-solid:chess-knight',
-			rule: () => true
+			rule: (startPosition, finalPosition, player: 1 | 2) => {
+				const [startVertical, startHorizontal] = startPosition.split('_').map(Number);
+				const [finalVertical, finalHorizontal] = finalPosition.split('_').map(Number);
+
+				// left top 1
+				if (startHorizontal - finalHorizontal === 2) {
+					if (finalVertical - startVertical === 1) return true;
+				}
+				// left top 2
+				if (startHorizontal - finalHorizontal === 1) {
+					if (finalVertical - startVertical === 2) return true;
+				}
+				// right top 1
+				if (finalHorizontal - startHorizontal === 2) {
+					if (finalVertical - startVertical === 1) return true;
+				}
+				// right top 2
+				if (finalHorizontal - startHorizontal === 1) {
+					if (finalVertical - startVertical === 2) return true;
+				}
+				// left bottom 1
+				if (startHorizontal - finalHorizontal === 2) {
+					if (startVertical - finalVertical === 1) return true;
+				}
+				// left bottom 2
+				if (startHorizontal - finalHorizontal === 1) {
+					if (startVertical - finalVertical === 2) return true;
+				}
+				// right bottom 1
+				if (finalHorizontal - startHorizontal === 2) {
+					if (startVertical - finalVertical === 1) return true;
+				}
+				// right bottom 2
+				if (finalHorizontal - startHorizontal === 1) {
+					if (startVertical - finalVertical === 2) return true;
+				}
+
+				return false;
+			}
 		},
 		bishop: {
 			name: 'bishop',
