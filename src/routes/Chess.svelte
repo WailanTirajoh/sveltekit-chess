@@ -41,7 +41,58 @@
 		rook: {
 			name: 'rook',
 			icon: 'fa-solid:chess-rook',
-			rule: () => true
+			rule: (startPosition, finalPosition, player: 1 | 2) => {
+				const [startVertical, startHorizontal] = startPosition.split('_').map(Number);
+				const [finalVertical, finalHorizontal] = finalPosition.split('_').map(Number);
+
+				if (startHorizontal === finalHorizontal) {
+					if (finalVertical > startVertical) {
+						let hasEnemyBeforeEnd = false;
+						for (let i = startVertical + 1; i < finalVertical; i++) {
+							if (boardPosition[`${i}_${finalHorizontal}`]) {
+								hasEnemyBeforeEnd = true;
+								break;
+							}
+						}
+						return !hasEnemyBeforeEnd;
+					}
+					if (finalVertical < startVertical) {
+						let hasEnemyBeforeEnd = false;
+						for (let i = startVertical - 1; i > finalVertical; i--) {
+							if (boardPosition[`${i}_${finalHorizontal}`]) {
+								hasEnemyBeforeEnd = true;
+								break;
+							}
+						}
+						return !hasEnemyBeforeEnd;
+					}
+				}
+
+				if (startVertical === finalVertical) {
+					if (finalHorizontal > startHorizontal) {
+						let hasEnemyBeforeEnd = false;
+						for (let i = startHorizontal + 1; i < finalHorizontal; i++) {
+							if (boardPosition[`${finalVertical}_${i}`]) {
+								hasEnemyBeforeEnd = true;
+								break;
+							}
+						}
+						return !hasEnemyBeforeEnd;
+					}
+					if (finalHorizontal < startHorizontal) {
+						let hasEnemyBeforeEnd = false;
+						for (let i = startHorizontal - 1; i > finalHorizontal; i--) {
+							if (boardPosition[`${finalVertical}_${i}`]) {
+								hasEnemyBeforeEnd = true;
+								break;
+							}
+						}
+						return !hasEnemyBeforeEnd;
+					}
+				}
+
+				return false;
+			}
 		},
 		knight: {
 			name: 'knight',
@@ -147,13 +198,13 @@
 	 */
 	let boardPosition: Record<string, PlayerPiece> = {
 		// White starting position
-		'1_1': {
+		'6_2': {
 			piece: chessPiece.rook,
 			player: 1
 		},
-		'1_2': {
+		'3_2': {
 			piece: chessPiece.knight,
-			player: 1
+			player: 2
 		},
 		'1_3': {
 			piece: chessPiece.bishop,
@@ -217,10 +268,10 @@
 			piece: chessPiece.rook,
 			player: 2
 		},
-		'8_2': {
-			piece: chessPiece.knight,
-			player: 2
-		},
+		// '8_2': {
+		// 	piece: chessPiece.knight,
+		// 	player: 2
+		// },
 		'8_3': {
 			piece: chessPiece.bishop,
 			player: 2
