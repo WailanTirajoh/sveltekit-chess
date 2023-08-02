@@ -20,81 +20,183 @@
 		8: 'h'
 	};
 
+	// We will create rule interface latter when we get into this (Should be after drag & drop)
 	interface Piece {
 		icon: string;
+		rule: () => boolean;
+	}
+
+	interface PlayerPiece {
+		piece: Piece;
 		player: 1 | 2;
 	}
+
+	type PieceName = 'rook' | 'knight' | 'bishop' | 'queen' | 'king' | 'pawn';
+	const chessPiece: Record<PieceName, Piece> = {
+		rook: {
+			icon: 'fa-solid:chess-rook',
+			rule: () => true
+		},
+		knight: {
+			icon: 'fa6-solid:chess-knight',
+			rule: () => true
+		},
+		bishop: {
+			icon: 'tabler:chess-bishop-filled',
+			rule: () => true
+		},
+		queen: {
+			icon: 'fa6-solid:chess-queen',
+			rule: () => true
+		},
+		king: {
+			icon: 'fa-solid:chess-king',
+			rule: () => true
+		},
+		pawn: {
+			icon: 'fa-solid:chess-pawn',
+			rule: () => true
+		}
+	};
 
 	/**
 	 * Starting position, latter we create draggable pieces,
 	 * and we have to mark the id with '{row}_{col}' so that when we drop,
 	 * we update the key on this object
 	 */
-	let boardPosition: Record<string, Piece> = {
+	let boardPosition: Record<string, PlayerPiece> = {
+        // White starting position
 		'1_1': {
-			icon: 'fa-solid:chess-pawn',
+			piece: chessPiece.rook,
 			player: 1
 		},
 		'1_2': {
-			icon: 'fa-solid:chess-pawn',
+			piece: chessPiece.knight,
 			player: 1
 		},
 		'1_3': {
-			icon: 'fa-solid:chess-pawn',
+			piece: chessPiece.bishop,
 			player: 1
 		},
 		'1_4': {
-			icon: 'fa-solid:chess-pawn',
+			piece: chessPiece.queen,
 			player: 1
 		},
 		'1_5': {
-			icon: 'fa-solid:chess-pawn',
+			piece: chessPiece.king,
 			player: 1
 		},
 		'1_6': {
-			icon: 'fa-solid:chess-pawn',
+			piece: chessPiece.bishop,
 			player: 1
 		},
 		'1_7': {
-			icon: 'fa-solid:chess-pawn',
+			piece: chessPiece.knight,
 			player: 1
 		},
 		'1_8': {
-			icon: 'fa-solid:chess-pawn',
+			piece: chessPiece.rook,
 			player: 1
 		},
 		'2_1': {
-			icon: 'fa-solid:chess-pawn',
+			piece: chessPiece.pawn,
 			player: 1
 		},
 		'2_2': {
-			icon: 'fa-solid:chess-pawn',
+			piece: chessPiece.pawn,
 			player: 1
 		},
 		'2_3': {
-			icon: 'fa-solid:chess-pawn',
+			piece: chessPiece.pawn,
 			player: 1
 		},
 		'2_4': {
-			icon: 'fa-solid:chess-pawn',
+			piece: chessPiece.pawn,
 			player: 1
 		},
 		'2_5': {
-			icon: 'fa-solid:chess-pawn',
+			piece: chessPiece.pawn,
 			player: 1
 		},
 		'2_6': {
-			icon: 'fa-solid:chess-pawn',
+			piece: chessPiece.pawn,
 			player: 1
 		},
 		'2_7': {
-			icon: 'fa-solid:chess-pawn',
+			piece: chessPiece.pawn,
 			player: 1
 		},
 		'2_8': {
-			icon: 'fa-solid:chess-pawn',
+			piece: chessPiece.pawn,
 			player: 1
-		}
+		},
+
+        
+        // Black starting position
+		'8_1': {
+			piece: chessPiece.rook,
+			player: 2
+		},
+		'8_2': {
+			piece: chessPiece.knight,
+			player: 2
+		},
+		'8_3': {
+			piece: chessPiece.bishop,
+			player: 2
+		},
+		'8_4': {
+			piece: chessPiece.queen,
+			player: 2
+		},
+		'8_5': {
+			piece: chessPiece.king,
+			player: 2
+		},
+		'8_6': {
+			piece: chessPiece.bishop,
+			player: 2
+		},
+		'8_7': {
+			piece: chessPiece.knight,
+			player: 2
+		},
+		'8_8': {
+			piece: chessPiece.rook,
+			player: 2
+		},
+		'7_1': {
+			piece: chessPiece.pawn,
+			player: 2
+		},
+		'7_2': {
+			piece: chessPiece.pawn,
+			player: 2
+		},
+		'7_3': {
+			piece: chessPiece.pawn,
+			player: 2
+		},
+		'7_4': {
+			piece: chessPiece.pawn,
+			player: 2
+		},
+		'7_5': {
+			piece: chessPiece.pawn,
+			player: 2
+		},
+		'7_6': {
+			piece: chessPiece.pawn,
+			player: 2
+		},
+		'7_7': {
+			piece: chessPiece.pawn,
+			player: 2
+		},
+		'7_8': {
+			piece: chessPiece.pawn,
+			player: 2
+		},
 	};
 </script>
 
@@ -114,7 +216,11 @@
 								? 'text-white'
 								: 'text-black'}
 						>
-							<Icon icon={boardPosition[`${vertical}_${horizontal}`].icon} width="30" height="30" />
+							<Icon
+								icon={boardPosition[`${vertical}_${horizontal}`].piece.icon}
+								width="30"
+								height="30"
+							/>
 						</div>
 					{/if}
 					{#if vertical === 1}
