@@ -620,10 +620,7 @@
 <!-- Create board UI -->
 <div class="flex justify-center h-full gap-8 p-4">
 	<div class="grid gap-4">
-		<div class="text-left text-white">
-			{currentPlayer === PLAYER_BLACK ? 'Black' : 'White'} to move
-		</div>
-		<div class="text-white">Valid move:</div>
+		<!-- <div class="text-white">Valid move:</div>
 		<div class="text-white">
 			<div class="">White</div>
 			<div class="grid grid-cols-3 gap-4 w-max h-max">
@@ -635,7 +632,6 @@
 							</div>
 							<div class="">
 								{getValidMovesForPiece(piece, position).join(',')}
-								<!-- {position} -->
 							</div>
 						</div>
 					{/if}
@@ -653,15 +649,19 @@
 							</div>
 							<div class="">
 								{getValidMovesForPiece(piece, position).join(',')}
-								<!-- {position} -->
 							</div>
 						</div>
 					{/if}
 				{/each}
 			</div>
-		</div>
+		</div> -->
 	</div>
-	<div class="grid grid-cols-8 w-max h-max border-2 border-black rounded overflow-hidden bg-white">
+	<div
+		class="grid grid-cols-8 w-max h-max border-2 border-black rounded overflow-hidden bg-white duration-150 {currentPlayer ===
+		PLAYER_BLACK
+			? 'rotate-180'
+			: ''}"
+	>
 		{#each verticalBoardSort as vertical}
 			{#each horizontalDirection as horizontal}
 				<button
@@ -675,6 +675,7 @@
                         {pieceMoveRule(activePiece, `${vertical}_${horizontal}`)
 						? '!bg-green-600 !bg-opacity-30'
 						: ''}
+						{currentPlayer === PLAYER_BLACK ? 'rotate-180' : ''}
                         "
 				>
 					{#if boardPosition[`${vertical}_${horizontal}`] !== undefined}
@@ -700,16 +701,19 @@
 					{/if}
 					{#if vertical === 1}
 						<div
-							class="absolute bottom-1 right-1 {isOdd(horizontal)
-								? 'text-[#779954]'
-								: 'text-[#e9edcc]'}"
+							class="absolute {isOdd(horizontal) ? 'text-[#779954]' : 'text-[#e9edcc]'} 
+						{currentPlayer === PLAYER_BLACK ? 'top-1 left-1' : 'bottom-1 right-1'}"
 						>
 							{horizontalAlias[horizontal]}
 						</div>
 					{/if}
 					{#if horizontal === 1}
 						<div
-							class="absolute top-1 left-1 {isOdd(vertical) ? 'text-[#779954]' : 'text-[#e9edcc]'}"
+							class="absolute {isOdd(vertical)
+								? 'text-[#779954]'
+								: 'text-[#e9edcc]'} {currentPlayer === PLAYER_BLACK
+								? 'bottom-1 right-1'
+								: 'top-1 left-1'}"
 						>
 							{vertical}
 						</div>
@@ -718,4 +722,7 @@
 			{/each}
 		{/each}
 	</div>
+</div>
+<div class="text-white text-center text-2xl font-bold">
+	{currentPlayer === PLAYER_BLACK ? 'Black' : 'White'} to move
 </div>
