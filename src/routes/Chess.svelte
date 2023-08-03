@@ -1,17 +1,25 @@
 <script lang="ts">
+	/**
+	 * TODO Features:
+	 * - Castling
+	 * - En Passant
+	 * - Check
+	 * - Game Time
+	 * - Game Over (Resign, checkmate, time win)
+	 * - Game Over Draw
+	 * 		- piece cant move, but no check
+	 * 		- acceptance draw
+	 * 		- Insufficient material for checkmate
+	 * 		- Lose on time, but enemy insufficient material for checkmate
+	 */
 	import Icon from '@iconify/svelte';
 
 	const PLAYER_WHITE = 1;
 	const PLAYER_BLACK = 2;
-	const verticalDirection = [1, 2, 3, 4, 5, 6, 7, 8];
-	const horizontalDirection = [1, 2, 3, 4, 5, 6, 7, 8];
-	let currentPlayer = PLAYER_WHITE;
-
-	// We reverse it for now, latter it will depend on the player perspective (reverse for player 1, and normal for player black)
-	const verticalBoardSort = verticalDirection.reverse();
-	const isOdd = (number: number) => number % 2 === 0;
-
-	const horizontalAlias: Record<number, string> = {
+	const VERTICAL_DIRECTION = [1, 2, 3, 4, 5, 6, 7, 8];
+	const HORIZONTAL_DIRECTION = [1, 2, 3, 4, 5, 6, 7, 8];
+	const VERTICAL_DIRECTION_REVERSE = VERTICAL_DIRECTION.reverse();
+	const HORIZONTAL_ALIAS: Record<number, string> = {
 		1: 'a',
 		2: 'b',
 		3: 'c',
@@ -21,29 +29,7 @@
 		7: 'g',
 		8: 'h'
 	};
-
-	type Player = 1 | 2;
-
-	// We will create rule interface latter when we get into this (Should be after drag & drop)
-	interface Piece {
-		name: PieceName;
-		icon: string;
-		rule: (startPosition: string, finalPosition: string, player: Player) => boolean;
-	}
-
-	interface PlayerPiece {
-		piece: Piece;
-		player: Player;
-	}
-
-	type PieceName = 'rook' | 'knight' | 'bishop' | 'queen' | 'king' | 'pawn';
-	type ChessPosition = string;
-	type BoardPosition = Partial<Record<ChessPosition, PlayerPiece>>;
-
-	interface ActivePiece extends PlayerPiece {
-		position: ChessPosition;
-	}
-	const chessPiece: Record<PieceName, Piece> = {
+	const CHESS_PIECE: Record<PieceName, Piece> = {
 		rook: {
 			name: 'rook',
 			icon: 'fa-solid:chess-rook',
@@ -360,143 +346,154 @@
 		}
 	};
 
+	// helpers
+	const isOdd = (number: number) => number % 2 === 0;
+
+	// Reactive Data
+	let currentPlayer = PLAYER_WHITE;
+
 	/**
 	 * Board position with {row_col} as the key
 	 */
 	let boardPosition: BoardPosition = {
 		// White starting position
 		'1_1': {
-			piece: chessPiece.rook,
+			piece: CHESS_PIECE.rook,
 			player: 1
 		},
 		'1_2': {
-			piece: chessPiece.knight,
+			piece: CHESS_PIECE.knight,
 			player: 1
 		},
 		'1_3': {
-			piece: chessPiece.bishop,
+			piece: CHESS_PIECE.bishop,
 			player: 1
 		},
 		'1_4': {
-			piece: chessPiece.queen,
+			piece: CHESS_PIECE.queen,
 			player: 1
 		},
 		'1_5': {
-			piece: chessPiece.king,
+			piece: CHESS_PIECE.king,
 			player: 1
 		},
 		'1_6': {
-			piece: chessPiece.bishop,
+			piece: CHESS_PIECE.bishop,
 			player: 1
 		},
 		'1_7': {
-			piece: chessPiece.knight,
+			piece: CHESS_PIECE.knight,
 			player: 1
 		},
 		'1_8': {
-			piece: chessPiece.rook,
+			piece: CHESS_PIECE.rook,
 			player: 1
 		},
 		'2_1': {
-			piece: chessPiece.pawn,
+			piece: CHESS_PIECE.pawn,
 			player: 1
 		},
 		'2_2': {
-			piece: chessPiece.pawn,
+			piece: CHESS_PIECE.pawn,
 			player: 1
 		},
 		'2_3': {
-			piece: chessPiece.pawn,
+			piece: CHESS_PIECE.pawn,
 			player: 1
 		},
 		'2_4': {
-			piece: chessPiece.pawn,
+			piece: CHESS_PIECE.pawn,
 			player: 1
 		},
 		'2_5': {
-			piece: chessPiece.pawn,
+			piece: CHESS_PIECE.pawn,
 			player: 1
 		},
 		'2_6': {
-			piece: chessPiece.pawn,
+			piece: CHESS_PIECE.pawn,
 			player: 1
 		},
 		'2_7': {
-			piece: chessPiece.pawn,
+			piece: CHESS_PIECE.pawn,
 			player: 1
 		},
 		'2_8': {
-			piece: chessPiece.pawn,
+			piece: CHESS_PIECE.pawn,
 			player: 1
 		},
 
 		// Black starting position
 		'8_1': {
-			piece: chessPiece.rook,
+			piece: CHESS_PIECE.rook,
 			player: 2
 		},
 		'8_2': {
-			piece: chessPiece.knight,
+			piece: CHESS_PIECE.knight,
 			player: 2
 		},
 		'8_3': {
-			piece: chessPiece.bishop,
+			piece: CHESS_PIECE.bishop,
 			player: 2
 		},
 		'8_4': {
-			piece: chessPiece.queen,
+			piece: CHESS_PIECE.queen,
 			player: 2
 		},
 		'8_5': {
-			piece: chessPiece.king,
+			piece: CHESS_PIECE.king,
 			player: 2
 		},
 		'8_6': {
-			piece: chessPiece.bishop,
+			piece: CHESS_PIECE.bishop,
 			player: 2
 		},
 		'8_7': {
-			piece: chessPiece.knight,
+			piece: CHESS_PIECE.knight,
 			player: 2
 		},
 		'8_8': {
-			piece: chessPiece.rook,
+			piece: CHESS_PIECE.rook,
 			player: 2
 		},
 		'7_1': {
-			piece: chessPiece.pawn,
+			piece: CHESS_PIECE.pawn,
 			player: 2
 		},
 		'7_2': {
-			piece: chessPiece.pawn,
+			piece: CHESS_PIECE.pawn,
 			player: 2
 		},
 		'7_3': {
-			piece: chessPiece.pawn,
+			piece: CHESS_PIECE.pawn,
 			player: 2
 		},
 		'7_4': {
-			piece: chessPiece.pawn,
+			piece: CHESS_PIECE.pawn,
 			player: 2
 		},
 		'7_5': {
-			piece: chessPiece.pawn,
+			piece: CHESS_PIECE.pawn,
 			player: 2
 		},
 		'7_6': {
-			piece: chessPiece.pawn,
+			piece: CHESS_PIECE.pawn,
 			player: 2
 		},
 		'7_7': {
-			piece: chessPiece.pawn,
+			piece: CHESS_PIECE.pawn,
 			player: 2
 		},
 		'7_8': {
-			piece: chessPiece.pawn,
+			piece: CHESS_PIECE.pawn,
 			player: 2
 		}
 	};
 	let activePiece: ActivePiece | null = null;
+
+	// ----------------------------------------------------------------
+	// TODO: Board position history, so we can create undo and redo feature.
+	// Will be triggered on pieceMove function.
+	// ----------------------------------------------------------------
 
 	function pieceMoveRule(piece: ActivePiece | null, finalPosition: ChessPosition, player?: 1 | 2) {
 		if (!piece) return false;
@@ -518,8 +515,7 @@
 	}
 
 	/**
-	 * @param piece
-	 * @param finalPosition
+	 * If after the piece move, king can be captured, then board should be reset to previous position with alert.
 	 */
 	function kingCanBeCaputuredAfterMove(piece: ActivePiece | null, finalPosition: ChessPosition) {
 		const oldPosition = { ...boardPosition };
@@ -539,7 +535,7 @@
 				Object.entries(boardPosition).filter(([key, value]) => value?.player !== piece.player)
 			)
 		)
-			.map(([position, piece]) => getValidMovesForPiece(piece!, position, opponentPlayer).flat())
+			.map(([position, piece]) => validPieceMove(piece!, position, opponentPlayer).flat())
 			.flat();
 
 		let ourKingPosition = null;
@@ -564,9 +560,9 @@
 		return false;
 	}
 
-	function getValidMovesForPiece(
+	function validPieceMove(
 		piece: PlayerPiece,
-		currentPosition: ChessPosition,
+		startPosition: ChessPosition,
 		player?: 1 | 2
 	): ChessPosition[] {
 		const validMoves: ChessPosition[] = [];
@@ -576,12 +572,12 @@
 				const finalPosition = `${vertical}_${horizontal}` as `${number}_${number}`;
 
 				if (
-					pieceMoveRule({ ...piece, position: currentPosition }, finalPosition, player) &&
-					currentPosition !== finalPosition
+					pieceMoveRule({ ...piece, position: startPosition }, finalPosition, player) &&
+					startPosition !== finalPosition
 				) {
 					const clonedBoardPosition = { ...boardPosition };
-					const currentPiece = clonedBoardPosition[currentPosition];
-					delete clonedBoardPosition[currentPosition];
+					const currentPiece = clonedBoardPosition[startPosition];
+					delete clonedBoardPosition[startPosition];
 					clonedBoardPosition[finalPosition] = currentPiece;
 
 					validMoves.push(finalPosition);
@@ -596,7 +592,10 @@
 		if (!pieceMoveRule(piece, finalPosition)) return;
 
 		// Check if the king is in danger after making the move
-		if (kingCanBeCaputuredAfterMove(piece, finalPosition)) return false;
+		if (kingCanBeCaputuredAfterMove(piece, finalPosition)) {
+			// TODO: Check if king has no defender left, then its game over!
+			return false;
+		}
 
 		if (!piece) return;
 		// Update board position
@@ -617,66 +616,36 @@
 	}
 </script>
 
-<!-- Create board UI -->
 <div class="flex justify-center h-full gap-8 p-4">
-	<div class="grid gap-4">
-		<!-- <div class="text-white">Valid move:</div>
-		<div class="text-white">
-			<div class="">White</div>
-			<div class="grid grid-cols-3 gap-4 w-max h-max">
-				{#each Object.entries(Object.fromEntries(Object.entries(boardPosition).filter(([key, value]) => value?.player === PLAYER_WHITE))) as [position, piece]}
-					{#if piece && position}
-						<div class="border p-2 rounded w-28 h-20">
-							<div class="">
-								{piece.piece.name}
-							</div>
-							<div class="">
-								{getValidMovesForPiece(piece, position).join(',')}
-							</div>
-						</div>
-					{/if}
-				{/each}
-			</div>
-		</div>
-		<div class="text-white">
-			<div class="">Black</div>
-			<div class="grid grid-cols-3 gap-4 w-max h-max">
-				{#each Object.entries(Object.fromEntries(Object.entries(boardPosition).filter(([key, value]) => value?.player === PLAYER_BLACK))) as [position, piece]}
-					{#if piece && position}
-						<div class="border p-2 rounded w-28 h-20">
-							<div class="">
-								{piece.piece.name}
-							</div>
-							<div class="">
-								{getValidMovesForPiece(piece, position).join(',')}
-							</div>
-						</div>
-					{/if}
-				{/each}
-			</div>
-		</div> -->
-	</div>
 	<div
-		class="grid grid-cols-8 w-max h-max border-2 border-black rounded overflow-hidden bg-white duration-150 {currentPlayer ===
+		class="grid grid-cols-8 w-max h-max rounded-lg overflow-hidden bg-white duration-150 {currentPlayer ===
 		PLAYER_BLACK
 			? 'rotate-180'
 			: ''}"
 	>
-		{#each verticalBoardSort as vertical}
-			{#each horizontalDirection as horizontal}
+		{#each VERTICAL_DIRECTION_REVERSE as vertical}
+			{#each HORIZONTAL_DIRECTION as horizontal}
 				<button
-					on:click={() => pieceMove(activePiece, `${vertical}_${horizontal}`)}
-					class="{isOdd(vertical)
-						? 'odd:bg-[#e9edcc] even:bg-[#779954]'
-						: 'odd:bg-[#779954] even:bg-[#e9edcc]'} h-16 w-16 relative flex justify-center items-center {activePiece?.position ===
-					`${vertical}_${horizontal}`
-						? '!bg-gray-600 !bg-opacity-60'
+					on:click={() => {
+						let pieceOnPosition = boardPosition[`${vertical}_${horizontal}`];
+						if (activePiece && (!pieceOnPosition || pieceOnPosition.player !== currentPlayer)) {
+							pieceMove(activePiece, `${vertical}_${horizontal}`);
+						} else {
+							if (!pieceOnPosition) return;
+
+							if (pieceOnPosition.player !== currentPlayer) return;
+							setActivePiece(pieceOnPosition, `${vertical}_${horizontal}`);
+						}
+					}}
+					class="h-10 w-10 sm:h-14 sm:w-14 md:h-16 md:w-16 relative flex justify-center items-center transition-width duration-300 transition-border
+						{activePiece?.position === `${vertical}_${horizontal}`
+						? '!bg-green-600 !bg-opacity-60  border-2 border-gray-600'
 						: ''}
+						{isOdd(vertical) ? 'odd:bg-[#e9edcc] even:bg-[#779954]' : 'odd:bg-[#779954] even:bg-[#e9edcc]'} 
                         {pieceMoveRule(activePiece, `${vertical}_${horizontal}`)
-						? '!bg-green-600 !bg-opacity-30'
+						? '!bg-green-600 !bg-opacity-40  border border-gray-300'
 						: ''}
-						{currentPlayer === PLAYER_BLACK ? 'rotate-180' : ''}
-                        "
+					"
 				>
 					{#if boardPosition[`${vertical}_${horizontal}`] !== undefined}
 						<div
@@ -684,36 +653,27 @@
 								? 'text-white'
 								: 'text-black'}
 						>
-							<button
-								on:click={() => {
-									let position = boardPosition[`${vertical}_${horizontal}`];
-									if (!position) return;
-									setActivePiece(position, `${vertical}_${horizontal}`);
-								}}
-							>
-								<Icon
-									icon={boardPosition[`${vertical}_${horizontal}`]?.piece.icon ?? ''}
-									width="30"
-									height="30"
-								/>
-							</button>
+							<Icon
+								icon={boardPosition[`${vertical}_${horizontal}`]?.piece.icon ?? ''}
+								class="!w-6 !h-6 md:!w-8 md:!h-8 duration-300 
+									{currentPlayer === PLAYER_BLACK ? 'rotate-180' : ''} "
+							/>
 						</div>
 					{/if}
 					{#if vertical === 1}
 						<div
 							class="absolute {isOdd(horizontal) ? 'text-[#779954]' : 'text-[#e9edcc]'} 
-						{currentPlayer === PLAYER_BLACK ? 'top-1 left-1' : 'bottom-1 right-1'}"
+						{currentPlayer === PLAYER_BLACK ? 'rotate-180' : ''} 
+						bottom-1 right-1"
 						>
-							{horizontalAlias[horizontal]}
+							{HORIZONTAL_ALIAS[horizontal]}
 						</div>
 					{/if}
 					{#if horizontal === 1}
 						<div
-							class="absolute {isOdd(vertical)
-								? 'text-[#779954]'
-								: 'text-[#e9edcc]'} {currentPlayer === PLAYER_BLACK
-								? 'bottom-1 right-1'
-								: 'top-1 left-1'}"
+							class="absolute {isOdd(vertical) ? 'text-[#779954]' : 'text-[#e9edcc]'} 
+								{currentPlayer === PLAYER_BLACK ? 'rotate-180' : ''} 
+								top-1 left-1"
 						>
 							{vertical}
 						</div>
