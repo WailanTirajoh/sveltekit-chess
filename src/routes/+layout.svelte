@@ -4,15 +4,9 @@
 </script>
 
 <div class="app">
-	<Header />
-
-	<main>
+	<main class="bg-gray-900 h-full min-h-[100svh]">
 		<slot />
 	</main>
-
-	<footer>
-		Chess with sveltekit! 
-	</footer>
 </div>
 
 <style>

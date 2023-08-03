@@ -7,10 +7,8 @@
 	<meta name="description" content="Svelte demo app" />
 </svelte:head>
 
-<section>
-	<div class="">
-		<Chess />
-	</div>
+<section class="h-full">
+	<Chess />
 </section>
 
 <style>
