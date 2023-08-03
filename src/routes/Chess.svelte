@@ -502,7 +502,7 @@
 		if (!piece) return false;
 
 		// Dont move other player piece
-		if(!player) {
+		if (!player) {
 			if (piece?.player !== currentPlayer) return false;
 		}
 		// Dont do anything if its on same place
