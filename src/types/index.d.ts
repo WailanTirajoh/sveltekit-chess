@@ -6,6 +6,7 @@ declare global {
 		name: PieceName;
 		icon: string;
 		rule: (startPosition: string, finalPosition: string, player: Player) => boolean;
+		possibleMove: Array<ChessPosition>;
 	}
 
 	interface PlayerPiece {
@@ -20,6 +21,11 @@ declare global {
 	interface ActivePiece extends PlayerPiece {
 		position: ChessPosition;
 	}
+
+	interface PlayerPieceMove extends PlayerPiece {
+		position: ChessPosition;
+	}
+	type PieceMoveHistory = Array<PlayerPieceMove>;
 }
 
 export {};

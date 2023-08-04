@@ -1,6 +1,8 @@
 <script lang="ts">
 	import Icon from '@iconify/svelte';
 	import ChessBoard from './ChessBoard.svelte';
+	import ChessMoveHistory from './ChessMoveHistory.svelte';
+	import { onMount } from 'svelte';
 
 	/**
 	 * TODO Features:
@@ -8,13 +10,16 @@
 	 * - En Passant
 	 * - Check
 	 * - Game Time
-	 * - Game Over (Resign, checkmate, time win)
+	 * - Game Over
+	 * 		- resign
+	 * 		- checkmate (done ~ but need improvement)
+	 * 		- time win
 	 * - Game Over Draw
 	 * 		- piece cant move, but no check
 	 * 		- acceptance draw
 	 * 		- Insufficient material for checkmate
 	 * 		- Lose on time, but enemy insufficient material for checkmate
-	 * 
+	 *
 	 * After Chess:
 	 * - multiplayer (firebase)
 	 */
@@ -23,6 +28,7 @@
 
 	const CHESS_PIECE: Record<PieceName, Piece> = {
 		rook: {
+			possibleMove: [],
 			name: 'rook',
 			icon: 'fa-solid:chess-rook',
 			rule: (startPosition, finalPosition, player: 1 | 2) => {
@@ -79,6 +85,7 @@
 			}
 		},
 		knight: {
+			possibleMove: [],
 			name: 'knight',
 			icon: 'fa6-solid:chess-knight',
 			rule: (startPosition, finalPosition, player: 1 | 2) => {
@@ -122,6 +129,7 @@
 			}
 		},
 		bishop: {
+			possibleMove: [],
 			name: 'bishop',
 			icon: 'tabler:chess-bishop-filled',
 			rule: (startPosition, finalPosition, player: 1 | 2) => {
@@ -161,6 +169,7 @@
 			}
 		},
 		queen: {
+			possibleMove: [],
 			name: 'queen',
 			icon: 'fa6-solid:chess-queen',
 			rule: (startPosition, finalPosition, player: 1 | 2) => {
@@ -223,6 +232,7 @@
 			}
 		},
 		king: {
+			possibleMove: [],
 			name: 'king',
 			icon: 'fa-solid:chess-king',
 			rule: (startPosition, finalPosition, player: 1 | 2) => {
@@ -234,6 +244,17 @@
 					Math.abs(finalVertical - startVertical) <= 1 &&
 					Math.abs(finalHorizontal - startHorizontal) <= 1
 				) {
+					const inCheckAfterMove = Object.entries(
+						Object.fromEntries(
+							Object.entries(boardPosition).filter(([key, value]) => value?.player !== player)
+						)
+					)
+						.map(([_, piece]) => piece?.piece.possibleMove)
+						.flat()
+						.includes(`${finalVertical}_${finalHorizontal}`);
+
+					if (inCheckAfterMove) return false;
+
 					// Check if the destination position is empty or has an enemy piece
 					const destinationPiece = boardPosition[`${finalVertical}_${finalHorizontal}`];
 					if (!destinationPiece || destinationPiece.player !== player) {
@@ -245,6 +266,7 @@
 			}
 		},
 		pawn: {
+			possibleMove: [],
 			name: 'pawn',
 			icon: 'fa-solid:chess-pawn',
 			rule: (startPosition, finalPosition, player: 1 | 2) => {
@@ -341,6 +363,8 @@
 	// Reactive Data
 	let activePlayer: Player = PLAYER_WHITE;
 	let activePiece: ActivePiece | null = null;
+	let winner: Player | null = null;
+	let boardRotateable: boolean = false;
 
 	/**
 	 * Board position with {row_col} as the key
@@ -483,14 +507,11 @@
 	// TODO: Board position history, so we can create undo and redo feature.
 	// Will be triggered on pieceMove function.
 	// ----------------------------------------------------------------
+	let moveHistory: PieceMoveHistory = [];
 
-	function pieceMoveRule(piece: ActivePiece | null, finalPosition: ChessPosition, player?: 1 | 2) {
+	function pieceMoveRule(piece: ActivePiece | null, finalPosition: ChessPosition) {
 		if (!piece) return false;
 
-		// Dont move other player piece
-		if (!player) {
-			if (piece?.player !== activePlayer) return false;
-		}
 		// Dont do anything if its on same place
 		if (piece.position === finalPosition) return false;
 
@@ -510,6 +531,7 @@
 		const oldPosition = { ...boardPosition };
 		if (!pieceMoveRule(piece, finalPosition)) return;
 		if (!piece) return;
+
 		// Update board position
 		boardPosition[finalPosition] = {
 			piece: piece.piece,
@@ -518,22 +540,19 @@
 
 		delete boardPosition[piece.position];
 
-		const opponentPlayer = activePlayer === PLAYER_WHITE ? PLAYER_BLACK : PLAYER_WHITE;
+		updateAllPossibleMove();
 		const oponentPieceAvailableMove = Object.entries(
 			Object.fromEntries(
 				Object.entries(boardPosition).filter(([key, value]) => value?.player !== piece.player)
 			)
 		)
-			.map(([position, piece]) => validPieceMove(piece!, position, opponentPlayer))
+			.map(([_, piece]) => piece?.piece.possibleMove)
 			.flat();
 
-		let ourKingPosition = null;
-		for (const [position, piece2] of Object.entries(boardPosition)) {
-			if (piece2?.player === piece.player && piece2?.piece.name === 'king') {
-				ourKingPosition = position;
-				break;
-			}
-		}
+		const ourKingPosition =
+			Object.entries(boardPosition).find(
+				([_, piece2]) => piece2?.player === piece.player && piece2?.piece.name === 'king'
+			)?.[0] || null;
 
 		if (oponentPieceAvailableMove.includes(ourKingPosition!)) {
 			// Reset the board with old board.
@@ -555,15 +574,7 @@
 			for (let horizontal = 1; horizontal <= 8; horizontal++) {
 				const finalPosition = `${vertical}_${horizontal}` as `${number}_${number}`;
 
-				if (
-					pieceMoveRule({ ...piece, position: startPosition }, finalPosition, player) &&
-					startPosition !== finalPosition
-				) {
-					const clonedBoardPosition = { ...boardPosition };
-					const currentPiece = clonedBoardPosition[startPosition];
-					delete clonedBoardPosition[startPosition];
-					clonedBoardPosition[finalPosition] = currentPiece;
-
+				if (pieceMoveRule({ ...piece, position: startPosition }, finalPosition)) {
 					validMoves.push(finalPosition);
 				}
 			}
@@ -572,23 +583,55 @@
 		return validMoves;
 	}
 
-	function pieceMove(piece: ActivePiece | null, finalPosition: ChessPosition) {
+	async function pieceMove(piece: ActivePiece | null, finalPosition: ChessPosition) {
 		if (!pieceMoveRule(piece, finalPosition)) return;
 
 		// Check if the king is in danger after making the move
-		if (kingCanBeCaputuredAfterMove(piece, finalPosition)) {
-			// TODO: Check if king has no defender left, then its game over!
-			return false;
-		}
+		if (kingCanBeCaputuredAfterMove(piece, finalPosition)) return;
 
 		if (!piece) return;
 		// Update board position
 		boardPosition[finalPosition] = {
-			piece: piece.piece,
+			piece: {
+				...piece.piece
+			},
 			player: piece.player
 		};
 
 		delete boardPosition[piece.position];
+
+		updateAllPossibleMove();
+
+		moveHistory = [...moveHistory, piece];
+
+		const enemyKingPosition =
+			Object.entries(boardPosition).find(
+				([position, piece2]) => piece2?.player !== piece.player && piece2?.piece.name === 'king'
+			)?.[0] || null;
+
+		const pieceValidMove = validPieceMove(piece, finalPosition);
+
+		if (pieceValidMove.includes(enemyKingPosition!)) {
+			if (boardPosition[enemyKingPosition!]!.piece.possibleMove.length === 0) {
+				const opponentCanAttackOurChecker = Object.entries(
+					Object.fromEntries(
+						Object.entries(boardPosition).filter(([_, value]) => value?.player !== piece.player)
+					)
+				)
+					.map(([_, piece]) => piece?.piece.possibleMove)
+					.flat();
+
+				console.log(opponentCanAttackOurChecker, finalPosition);
+				console.log(opponentCanAttackOurChecker.includes(finalPosition));
+
+				if (!opponentCanAttackOurChecker.includes(finalPosition)) {
+					alert('gameover');
+					winner = piece.player;
+					activePiece = null;
+					return;
+				}
+			}
+		}
 
 		activePiece = null;
 
@@ -609,9 +652,44 @@
 			setActivePiece(pieceOnPosition, position);
 		}
 	}
+
+	function updateAllPossibleMove() {
+		let shallowBoard: BoardPosition = {};
+		for (let position in boardPosition) {
+			let validMoves = [];
+			for (let vertical = 1; vertical <= 8; vertical++) {
+				for (let horizontal = 1; horizontal <= 8; horizontal++) {
+					const finalPosition = `${vertical}_${horizontal}` as `${number}_${number}`;
+					if (boardPosition[position]) {
+						if (pieceMoveRule({ ...boardPosition[position]!, position }, finalPosition)) {
+							validMoves.push(finalPosition);
+						}
+					}
+				}
+			}
+
+			if (boardPosition[position]) {
+				shallowBoard[position] = {
+					piece: {
+						icon: boardPosition[position]!.piece.icon!,
+						name: boardPosition[position]!.piece.name!,
+						rule: boardPosition[position]!.piece.rule!,
+						possibleMove: validMoves
+					},
+					player: boardPosition[position]!.player!
+				};
+			}
+		}
+
+		boardPosition = shallowBoard;
+	}
+
+	onMount(() => {
+		updateAllPossibleMove();
+	});
 </script>
 
-<div class="grid grid-cols-1 md:grid-cols-2 justify-center h-full gap-8 p-4">
+<div class="grid grid-cols-1 lg:grid-cols-2 justify-center h-full gap-8 p-4 duration-100">
 	<ChessBoard
 		on:cellClick={(event) => {
 			onCellClick(event.detail.position);
@@ -619,9 +697,10 @@
 		{activePlayer}
 		{activePiece}
 		{boardPosition}
+		rotateable={boardRotateable}
 	>
 		<div slot="cell" let:position>
-			{#if pieceMoveRule(activePiece, position)}
+			{#if activePiece?.piece.possibleMove.includes(position)}
 				<div
 					class="
 						w-4 h-4 rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
@@ -641,7 +720,12 @@
 			{/if}
 		</div>
 	</ChessBoard>
+	<ChessMoveHistory moves={moveHistory} />
 </div>
 <div class="text-white text-center text-2xl font-bold">
-	{activePlayer === PLAYER_BLACK ? 'Black' : 'White'} to move
+	{#if winner}
+		{winner === PLAYER_BLACK ? 'Black' : 'White'} Win!
+	{:else}
+		{activePlayer === PLAYER_BLACK ? 'Black' : 'White'} to move
+	{/if}
 </div>
