@@ -1,4 +1,7 @@
 <script lang="ts">
+	import Icon from '@iconify/svelte';
+	import ChessBoard from './ChessBoard.svelte';
+
 	/**
 	 * TODO Features:
 	 * - Castling
@@ -11,24 +14,13 @@
 	 * 		- acceptance draw
 	 * 		- Insufficient material for checkmate
 	 * 		- Lose on time, but enemy insufficient material for checkmate
+	 * 
+	 * After Chess:
+	 * - multiplayer (firebase)
 	 */
-	import Icon from '@iconify/svelte';
+	const PLAYER_WHITE: Player = 1;
+	const PLAYER_BLACK: Player = 2;
 
-	const PLAYER_WHITE = 1;
-	const PLAYER_BLACK = 2;
-	const VERTICAL_DIRECTION = [1, 2, 3, 4, 5, 6, 7, 8];
-	const HORIZONTAL_DIRECTION = [1, 2, 3, 4, 5, 6, 7, 8];
-	const VERTICAL_DIRECTION_REVERSE = VERTICAL_DIRECTION.reverse();
-	const HORIZONTAL_ALIAS: Record<number, string> = {
-		1: 'a',
-		2: 'b',
-		3: 'c',
-		4: 'd',
-		5: 'e',
-		6: 'f',
-		7: 'g',
-		8: 'h'
-	};
 	const CHESS_PIECE: Record<PieceName, Piece> = {
 		rook: {
 			name: 'rook',
@@ -346,11 +338,9 @@
 		}
 	};
 
-	// helpers
-	const isOdd = (number: number) => number % 2 === 0;
-
 	// Reactive Data
-	let currentPlayer = PLAYER_WHITE;
+	let activePlayer: Player = PLAYER_WHITE;
+	let activePiece: ActivePiece | null = null;
 
 	/**
 	 * Board position with {row_col} as the key
@@ -488,7 +478,6 @@
 			player: 2
 		}
 	};
-	let activePiece: ActivePiece | null = null;
 
 	// ----------------------------------------------------------------
 	// TODO: Board position history, so we can create undo and redo feature.
@@ -500,7 +489,7 @@
 
 		// Dont move other player piece
 		if (!player) {
-			if (piece?.player !== currentPlayer) return false;
+			if (piece?.player !== activePlayer) return false;
 		}
 		// Dont do anything if its on same place
 		if (piece.position === finalPosition) return false;
@@ -529,13 +518,13 @@
 
 		delete boardPosition[piece.position];
 
-		const opponentPlayer = currentPlayer === PLAYER_WHITE ? PLAYER_BLACK : PLAYER_WHITE;
+		const opponentPlayer = activePlayer === PLAYER_WHITE ? PLAYER_BLACK : PLAYER_WHITE;
 		const oponentPieceAvailableMove = Object.entries(
 			Object.fromEntries(
 				Object.entries(boardPosition).filter(([key, value]) => value?.player !== piece.player)
 			)
 		)
-			.map(([position, piece]) => validPieceMove(piece!, position, opponentPlayer).flat())
+			.map(([position, piece]) => validPieceMove(piece!, position, opponentPlayer))
 			.flat();
 
 		let ourKingPosition = null;
@@ -546,12 +535,7 @@
 			}
 		}
 
-		if (!ourKingPosition) {
-			// This should not be possible since game is over without king xD
-			return true;
-		}
-
-		if (oponentPieceAvailableMove.includes(ourKingPosition)) {
+		if (oponentPieceAvailableMove.includes(ourKingPosition!)) {
 			// Reset the board with old board.
 			boardPosition = { ...oldPosition };
 			alert('Invalid Move!');
@@ -608,81 +592,56 @@
 
 		activePiece = null;
 
-		currentPlayer = currentPlayer === PLAYER_WHITE ? PLAYER_BLACK : PLAYER_WHITE;
+		activePlayer = activePlayer === PLAYER_WHITE ? PLAYER_BLACK : PLAYER_WHITE;
 	}
 
 	function setActivePiece(piece: PlayerPiece, startPosition: ChessPosition) {
 		activePiece = { ...piece, position: startPosition };
 	}
+
+	function onCellClick(position: ChessPosition) {
+		let pieceOnPosition = boardPosition[position];
+		if (activePiece && (!pieceOnPosition || pieceOnPosition.player !== activePlayer)) {
+			pieceMove(activePiece, position);
+		} else {
+			if (!pieceOnPosition) return;
+			if (pieceOnPosition.player !== activePlayer) return;
+			setActivePiece(pieceOnPosition, position);
+		}
+	}
 </script>
 
-<div class="flex justify-center h-full gap-8 p-4">
-	<div
-		class="grid grid-cols-8 w-max h-max rounded-lg overflow-hidden bg-white duration-150 {currentPlayer ===
-		PLAYER_BLACK
-			? 'rotate-180'
-			: ''}"
+<div class="grid grid-cols-1 md:grid-cols-2 justify-center h-full gap-8 p-4">
+	<ChessBoard
+		on:cellClick={(event) => {
+			onCellClick(event.detail.position);
+		}}
+		{activePlayer}
+		{activePiece}
+		{boardPosition}
 	>
-		{#each VERTICAL_DIRECTION_REVERSE as vertical}
-			{#each HORIZONTAL_DIRECTION as horizontal}
-				<button
-					on:click={() => {
-						let pieceOnPosition = boardPosition[`${vertical}_${horizontal}`];
-						if (activePiece && (!pieceOnPosition || pieceOnPosition.player !== currentPlayer)) {
-							pieceMove(activePiece, `${vertical}_${horizontal}`);
-						} else {
-							if (!pieceOnPosition) return;
-
-							if (pieceOnPosition.player !== currentPlayer) return;
-							setActivePiece(pieceOnPosition, `${vertical}_${horizontal}`);
-						}
-					}}
-					class="h-10 w-10 sm:h-14 sm:w-14 md:h-16 md:w-16 relative flex justify-center items-center transition-width duration-300 transition-border
-						{activePiece?.position === `${vertical}_${horizontal}`
-						? '!bg-green-600 !bg-opacity-60  border-2 border-gray-600'
-						: ''}
-						{isOdd(vertical) ? 'odd:bg-[#e9edcc] even:bg-[#779954]' : 'odd:bg-[#779954] even:bg-[#e9edcc]'} 
-                        {pieceMoveRule(activePiece, `${vertical}_${horizontal}`)
-						? '!bg-green-600 !bg-opacity-40  border border-gray-300'
-						: ''}
+		<div slot="cell" let:position>
+			{#if pieceMoveRule(activePiece, position)}
+				<div
+					class="
+						w-4 h-4 rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
+						{boardPosition[position] !== undefined ? '' : 'bg-gray-900 bg-opacity-20'}
 					"
 				>
-					{#if boardPosition[`${vertical}_${horizontal}`] !== undefined}
-						<div
-							class={boardPosition[`${vertical}_${horizontal}`]?.player === 1
-								? 'text-white'
-								: 'text-black'}
-						>
-							<Icon
-								icon={boardPosition[`${vertical}_${horizontal}`]?.piece.icon ?? ''}
-								class="!w-6 !h-6 md:!w-8 md:!h-8 duration-300 
-									{currentPlayer === PLAYER_BLACK ? 'rotate-180' : ''} "
-							/>
-						</div>
+					{#if boardPosition[position] !== undefined}
+						<Icon
+							icon="mdi:sword"
+							class="
+								!w-6 !h-6 md:!w-8 md:!h-8 duration-300 text-red-400 animate-bounce pt-2
+								{activePlayer === PLAYER_BLACK ? 'rotate-180' : ''}
+							"
+						/>
 					{/if}
-					{#if vertical === 1}
-						<div
-							class="absolute {isOdd(horizontal) ? 'text-[#779954]' : 'text-[#e9edcc]'} 
-						{currentPlayer === PLAYER_BLACK ? 'rotate-180' : ''} 
-						bottom-1 right-1"
-						>
-							{HORIZONTAL_ALIAS[horizontal]}
-						</div>
-					{/if}
-					{#if horizontal === 1}
-						<div
-							class="absolute {isOdd(vertical) ? 'text-[#779954]' : 'text-[#e9edcc]'} 
-								{currentPlayer === PLAYER_BLACK ? 'rotate-180' : ''} 
-								top-1 left-1"
-						>
-							{vertical}
-						</div>
-					{/if}
-				</button>
-			{/each}
-		{/each}
-	</div>
+				</div>
+			{/if}
+		</div>
+	</ChessBoard>
 </div>
 <div class="text-white text-center text-2xl font-bold">
-	{currentPlayer === PLAYER_BLACK ? 'Black' : 'White'} to move
+	{activePlayer === PLAYER_BLACK ? 'Black' : 'White'} to move
 </div>
