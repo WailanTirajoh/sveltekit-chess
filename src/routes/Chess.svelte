@@ -4,15 +4,15 @@
 	import ChessMoveHistory from './ChessMoveHistory.svelte';
 	import { onMount } from 'svelte';
 
+	// TODO Features:
 	/**
-	 * TODO Features:
 	 * - Castling
 	 * - En Passant
-	 * - Check
+	 * - Check (Done)
 	 * - Game Time
 	 * - Game Over
 	 * 		- resign
-	 * 		- checkmate (done ~ but need improvement)
+	 * 		- checkmate (Done ~ but need improvement)
 	 * 		- time win
 	 * - Game Over Draw
 	 * 		- piece cant move, but no check
@@ -23,9 +23,10 @@
 	 * After Chess:
 	 * - multiplayer (firebase)
 	 */
+
+	// TODO: Findout where to put this in chess lib.
 	const PLAYER_WHITE: Player = 1;
 	const PLAYER_BLACK: Player = 2;
-
 	const CHESS_PIECE: Record<PieceName, Piece> = {
 		rook: {
 			possibleMove: [],
@@ -39,7 +40,7 @@
 					if (finalVertical > startVertical) {
 						let hasEnemyBeforeEnd = false;
 						for (let i = startVertical + 1; i < finalVertical; i++) {
-							if (boardPosition[`${i}_${finalHorizontal}`]) {
+							if (board[`${i}_${finalHorizontal}`]) {
 								hasEnemyBeforeEnd = true;
 								break;
 							}
@@ -49,7 +50,7 @@
 					if (finalVertical < startVertical) {
 						let hasEnemyBeforeEnd = false;
 						for (let i = startVertical - 1; i > finalVertical; i--) {
-							if (boardPosition[`${i}_${finalHorizontal}`]) {
+							if (board[`${i}_${finalHorizontal}`]) {
 								hasEnemyBeforeEnd = true;
 								break;
 							}
@@ -62,7 +63,7 @@
 					if (finalHorizontal > startHorizontal) {
 						let hasEnemyBeforeEnd = false;
 						for (let i = startHorizontal + 1; i < finalHorizontal; i++) {
-							if (boardPosition[`${finalVertical}_${i}`]) {
+							if (board[`${finalVertical}_${i}`]) {
 								hasEnemyBeforeEnd = true;
 								break;
 							}
@@ -72,7 +73,7 @@
 					if (finalHorizontal < startHorizontal) {
 						let hasEnemyBeforeEnd = false;
 						for (let i = startHorizontal - 1; i > finalHorizontal; i--) {
-							if (boardPosition[`${finalVertical}_${i}`]) {
+							if (board[`${finalVertical}_${i}`]) {
 								hasEnemyBeforeEnd = true;
 								break;
 							}
@@ -148,7 +149,7 @@
 
 					// Check for obstacles in the path of the bishop
 					while (currentVertical !== finalVertical && currentHorizontal !== finalHorizontal) {
-						if (boardPosition[`${currentVertical}_${currentHorizontal}`]) {
+						if (board[`${currentVertical}_${currentHorizontal}`]) {
 							// There is an obstacle in the path, so bishop cannot move
 							return false;
 						}
@@ -157,7 +158,7 @@
 					}
 
 					// Check if the destination position is empty or has an enemy piece
-					const destinationPiece = boardPosition[`${finalVertical}_${finalHorizontal}`];
+					const destinationPiece = board[`${finalVertical}_${finalHorizontal}`];
 					if (!destinationPiece || destinationPiece.player !== player) {
 						// The move is valid if the destination is empty or has an enemy piece
 						return true;
@@ -187,7 +188,7 @@
 						// Horizontal move
 						const increment = finalHorizontal > startHorizontal ? 1 : -1;
 						for (let i = startHorizontal + increment; i !== finalHorizontal; i += increment) {
-							if (boardPosition[`${finalVertical}_${i}`]) {
+							if (board[`${finalVertical}_${i}`]) {
 								// There is an obstacle in the path, so queen cannot move
 								return false;
 							}
@@ -196,7 +197,7 @@
 						// Vertical move
 						const increment = finalVertical > startVertical ? 1 : -1;
 						for (let i = startVertical + increment; i !== finalVertical; i += increment) {
-							if (boardPosition[`${i}_${finalHorizontal}`]) {
+							if (board[`${i}_${finalHorizontal}`]) {
 								// There is an obstacle in the path, so queen cannot move
 								return false;
 							}
@@ -210,7 +211,7 @@
 						let currentHorizontal = startHorizontal + horizontalIncrement;
 
 						while (currentVertical !== finalVertical && currentHorizontal !== finalHorizontal) {
-							if (boardPosition[`${currentVertical}_${currentHorizontal}`]) {
+							if (board[`${currentVertical}_${currentHorizontal}`]) {
 								// There is an obstacle in the path, so queen cannot move
 								return false;
 							}
@@ -220,7 +221,7 @@
 					}
 
 					// Check if the destination position is empty or has an enemy piece
-					const destinationPiece = boardPosition[`${finalVertical}_${finalHorizontal}`];
+					const destinationPiece = board[`${finalVertical}_${finalHorizontal}`];
 					if (!destinationPiece || destinationPiece.player !== player) {
 						// The move is valid if the destination is empty or has an enemy piece
 						return true;
@@ -246,7 +247,7 @@
 				) {
 					const inCheckAfterMove = Object.entries(
 						Object.fromEntries(
-							Object.entries(boardPosition).filter(([key, value]) => value?.player !== player)
+							Object.entries(board).filter(([key, value]) => value?.player !== player)
 						)
 					)
 						.map(([_, piece]) => piece?.piece.possibleMove)
@@ -256,7 +257,7 @@
 					if (inCheckAfterMove) return false;
 
 					// Check if the destination position is empty or has an enemy piece
-					const destinationPiece = boardPosition[`${finalVertical}_${finalHorizontal}`];
+					const destinationPiece = board[`${finalVertical}_${finalHorizontal}`];
 					if (!destinationPiece || destinationPiece.player !== player) {
 						return true;
 					}
@@ -273,7 +274,7 @@
 				const [startVertical, startHorizontal] = startPosition.split('_').map(Number);
 				const [finalVertical, finalHorizontal] = finalPosition.split('_').map(Number);
 				let enemy: PlayerPiece | null = null;
-				const finalPositionPawn = boardPosition[`${finalVertical}_${finalHorizontal}`];
+				const finalPositionPawn = board[`${finalVertical}_${finalHorizontal}`];
 				if (finalPositionPawn) {
 					if (finalPositionPawn.player !== player) {
 						enemy = finalPositionPawn;
@@ -286,7 +287,7 @@
 					// Check if the pawn is moving one square forward
 					if (startHorizontal === finalHorizontal && finalVertical - startVertical === 1) {
 						// Check if the destination position is empty
-						if (!boardPosition[`${finalVertical}_${finalHorizontal}`]) {
+						if (!board[`${finalVertical}_${finalHorizontal}`]) {
 							return true;
 						}
 					}
@@ -299,8 +300,8 @@
 					) {
 						// Check if the two squares in front of the pawn are empty
 						if (
-							!boardPosition[`${startVertical + 1}_${startHorizontal}`] &&
-							!boardPosition[`${finalVertical}_${finalHorizontal}`]
+							!board[`${startVertical + 1}_${startHorizontal}`] &&
+							!board[`${finalVertical}_${finalHorizontal}`]
 						) {
 							return true;
 						}
@@ -322,7 +323,7 @@
 					// Check if the pawn is moving one square forward
 					if (startHorizontal === finalHorizontal && startVertical - finalVertical === 1) {
 						// Check if the destination position is empty
-						if (!boardPosition[`${finalVertical}_${finalHorizontal}`]) {
+						if (!board[`${finalVertical}_${finalHorizontal}`]) {
 							return true;
 						}
 					}
@@ -335,8 +336,8 @@
 					) {
 						// Check if the two squares in front of the pawn are empty
 						if (
-							!boardPosition[`${startVertical - 1}_${startHorizontal}`] &&
-							!boardPosition[`${finalVertical}_${finalHorizontal}`]
+							!board[`${startVertical - 1}_${startHorizontal}`] &&
+							!board[`${finalVertical}_${finalHorizontal}`]
 						) {
 							return true;
 						}
@@ -359,149 +360,146 @@
 			}
 		}
 	};
+	const CHESS_START_POSITION = {
+		// White starting position
+		'1_1': {
+			piece: CHESS_PIECE.rook,
+			player: PLAYER_WHITE
+		},
+		'1_2': {
+			piece: CHESS_PIECE.knight,
+			player: PLAYER_WHITE
+		},
+		'1_3': {
+			piece: CHESS_PIECE.bishop,
+			player: PLAYER_WHITE
+		},
+		'1_4': {
+			piece: CHESS_PIECE.queen,
+			player: PLAYER_WHITE
+		},
+		'1_5': {
+			piece: CHESS_PIECE.king,
+			player: PLAYER_WHITE
+		},
+		'1_6': {
+			piece: CHESS_PIECE.bishop,
+			player: PLAYER_WHITE
+		},
+		'1_7': {
+			piece: CHESS_PIECE.knight,
+			player: PLAYER_WHITE
+		},
+		'1_8': {
+			piece: CHESS_PIECE.rook,
+			player: PLAYER_WHITE
+		},
+		'2_1': {
+			piece: CHESS_PIECE.pawn,
+			player: PLAYER_WHITE
+		},
+		'2_2': {
+			piece: CHESS_PIECE.pawn,
+			player: PLAYER_WHITE
+		},
+		'2_3': {
+			piece: CHESS_PIECE.pawn,
+			player: PLAYER_WHITE
+		},
+		'2_4': {
+			piece: CHESS_PIECE.pawn,
+			player: PLAYER_WHITE
+		},
+		'2_5': {
+			piece: CHESS_PIECE.pawn,
+			player: PLAYER_WHITE
+		},
+		'2_6': {
+			piece: CHESS_PIECE.pawn,
+			player: PLAYER_WHITE
+		},
+		'2_7': {
+			piece: CHESS_PIECE.pawn,
+			player: PLAYER_WHITE
+		},
+		'2_8': {
+			piece: CHESS_PIECE.pawn,
+			player: PLAYER_WHITE
+		},
+
+		// Black starting position
+		'8_1': {
+			piece: CHESS_PIECE.rook,
+			player: PLAYER_BLACK
+		},
+		'8_2': {
+			piece: CHESS_PIECE.knight,
+			player: PLAYER_BLACK
+		},
+		'8_3': {
+			piece: CHESS_PIECE.bishop,
+			player: PLAYER_BLACK
+		},
+		'8_4': {
+			piece: CHESS_PIECE.queen,
+			player: PLAYER_BLACK
+		},
+		'8_5': {
+			piece: CHESS_PIECE.king,
+			player: PLAYER_BLACK
+		},
+		'8_6': {
+			piece: CHESS_PIECE.bishop,
+			player: PLAYER_BLACK
+		},
+		'8_7': {
+			piece: CHESS_PIECE.knight,
+			player: PLAYER_BLACK
+		},
+		'8_8': {
+			piece: CHESS_PIECE.rook,
+			player: PLAYER_BLACK
+		},
+		'7_1': {
+			piece: CHESS_PIECE.pawn,
+			player: PLAYER_BLACK
+		},
+		'7_2': {
+			piece: CHESS_PIECE.pawn,
+			player: PLAYER_BLACK
+		},
+		'7_3': {
+			piece: CHESS_PIECE.pawn,
+			player: PLAYER_BLACK
+		},
+		'7_4': {
+			piece: CHESS_PIECE.pawn,
+			player: PLAYER_BLACK
+		},
+		'7_5': {
+			piece: CHESS_PIECE.pawn,
+			player: PLAYER_BLACK
+		},
+		'7_6': {
+			piece: CHESS_PIECE.pawn,
+			player: PLAYER_BLACK
+		},
+		'7_7': {
+			piece: CHESS_PIECE.pawn,
+			player: PLAYER_BLACK
+		},
+		'7_8': {
+			piece: CHESS_PIECE.pawn,
+			player: PLAYER_BLACK
+		}
+	};
 
 	// Reactive Data
 	let activePlayer: Player = PLAYER_WHITE;
 	let activePiece: ActivePiece | null = null;
 	let winner: Player | null = null;
 	let boardRotateable: boolean = false;
-
-	/**
-	 * Board position with {row_col} as the key
-	 */
-	let boardPosition: BoardPosition = {
-		// White starting position
-		'1_1': {
-			piece: CHESS_PIECE.rook,
-			player: 1
-		},
-		'1_2': {
-			piece: CHESS_PIECE.knight,
-			player: 1
-		},
-		'1_3': {
-			piece: CHESS_PIECE.bishop,
-			player: 1
-		},
-		'1_4': {
-			piece: CHESS_PIECE.queen,
-			player: 1
-		},
-		'1_5': {
-			piece: CHESS_PIECE.king,
-			player: 1
-		},
-		'1_6': {
-			piece: CHESS_PIECE.bishop,
-			player: 1
-		},
-		'1_7': {
-			piece: CHESS_PIECE.knight,
-			player: 1
-		},
-		'1_8': {
-			piece: CHESS_PIECE.rook,
-			player: 1
-		},
-		'2_1': {
-			piece: CHESS_PIECE.pawn,
-			player: 1
-		},
-		'2_2': {
-			piece: CHESS_PIECE.pawn,
-			player: 1
-		},
-		'2_3': {
-			piece: CHESS_PIECE.pawn,
-			player: 1
-		},
-		'2_4': {
-			piece: CHESS_PIECE.pawn,
-			player: 1
-		},
-		'2_5': {
-			piece: CHESS_PIECE.pawn,
-			player: 1
-		},
-		'2_6': {
-			piece: CHESS_PIECE.pawn,
-			player: 1
-		},
-		'2_7': {
-			piece: CHESS_PIECE.pawn,
-			player: 1
-		},
-		'2_8': {
-			piece: CHESS_PIECE.pawn,
-			player: 1
-		},
-
-		// Black starting position
-		'8_1': {
-			piece: CHESS_PIECE.rook,
-			player: 2
-		},
-		'8_2': {
-			piece: CHESS_PIECE.knight,
-			player: 2
-		},
-		'8_3': {
-			piece: CHESS_PIECE.bishop,
-			player: 2
-		},
-		'8_4': {
-			piece: CHESS_PIECE.queen,
-			player: 2
-		},
-		'8_5': {
-			piece: CHESS_PIECE.king,
-			player: 2
-		},
-		'8_6': {
-			piece: CHESS_PIECE.bishop,
-			player: 2
-		},
-		'8_7': {
-			piece: CHESS_PIECE.knight,
-			player: 2
-		},
-		'8_8': {
-			piece: CHESS_PIECE.rook,
-			player: 2
-		},
-		'7_1': {
-			piece: CHESS_PIECE.pawn,
-			player: 2
-		},
-		'7_2': {
-			piece: CHESS_PIECE.pawn,
-			player: 2
-		},
-		'7_3': {
-			piece: CHESS_PIECE.pawn,
-			player: 2
-		},
-		'7_4': {
-			piece: CHESS_PIECE.pawn,
-			player: 2
-		},
-		'7_5': {
-			piece: CHESS_PIECE.pawn,
-			player: 2
-		},
-		'7_6': {
-			piece: CHESS_PIECE.pawn,
-			player: 2
-		},
-		'7_7': {
-			piece: CHESS_PIECE.pawn,
-			player: 2
-		},
-		'7_8': {
-			piece: CHESS_PIECE.pawn,
-			player: 2
-		}
-	};
+	let board: Board = CHESS_START_POSITION;
 
 	// ----------------------------------------------------------------
 	// TODO: Board position history, so we can create undo and redo feature.
@@ -509,14 +507,12 @@
 	// ----------------------------------------------------------------
 	let moveHistory: PieceMoveHistory = [];
 
-	function pieceMoveRule(piece: ActivePiece | null, finalPosition: ChessPosition) {
-		if (!piece) return false;
-
+	function validatePieceMove(piece: ActivePiece, finalPosition: ChessPosition) {
 		// Dont do anything if its on same place
 		if (piece.position === finalPosition) return false;
 
 		// Piece cant eat his own piece xD
-		if (piece.player === boardPosition[finalPosition]?.player) return false;
+		if (piece.player === board[finalPosition]?.player) return false;
 
 		// Stop when violating the rules
 		if (!piece.piece.rule(piece.position, finalPosition, piece.player)) return false;
@@ -524,39 +520,43 @@
 		return true;
 	}
 
+	// TODO: improvement on this area, so we dont have to clone board and reset board just to see if king can be eaten on next move!
 	/**
-	 * If after the piece move, king can be captured, then board should be reset to previous position with alert.
+	 * If after the piece move, king can be captured, then board should be reset to
+	 * previous position with alert.
 	 */
-	function kingCanBeCaputuredAfterMove(piece: ActivePiece | null, finalPosition: ChessPosition) {
-		const oldPosition = { ...boardPosition };
-		if (!pieceMoveRule(piece, finalPosition)) return;
-		if (!piece) return;
+	function kingCanBeCaputuredAfterMove(piece: ActivePiece, finalPosition: ChessPosition) {
+		const oldPosition = { ...board };
+
+		if (!validatePieceMove(piece, finalPosition)) return;
 
 		// Update board position
-		boardPosition[finalPosition] = {
+		board[finalPosition] = {
 			piece: piece.piece,
 			player: piece.player
 		};
 
-		delete boardPosition[piece.position];
+		delete board[piece.position];
 
-		updateAllPossibleMove();
+		resetAllPossibleMove();
+
 		const oponentPieceAvailableMove = Object.entries(
 			Object.fromEntries(
-				Object.entries(boardPosition).filter(([key, value]) => value?.player !== piece.player)
+				Object.entries(board).filter(([key, value]) => value?.player !== piece.player)
 			)
 		)
 			.map(([_, piece]) => piece?.piece.possibleMove)
 			.flat();
 
 		const ourKingPosition =
-			Object.entries(boardPosition).find(
-				([_, piece2]) => piece2?.player === piece.player && piece2?.piece.name === 'king'
+			Object.entries(board).find(
+				([_, boardPiece]) =>
+					boardPiece?.player === piece.player && boardPiece?.piece.name === 'king'
 			)?.[0] || null;
 
 		if (oponentPieceAvailableMove.includes(ourKingPosition!)) {
 			// Reset the board with old board.
-			boardPosition = { ...oldPosition };
+			board = { ...oldPosition };
 			alert('Invalid Move!');
 			return true;
 		}
@@ -574,7 +574,7 @@
 			for (let horizontal = 1; horizontal <= 8; horizontal++) {
 				const finalPosition = `${vertical}_${horizontal}` as `${number}_${number}`;
 
-				if (pieceMoveRule({ ...piece, position: startPosition }, finalPosition)) {
+				if (validatePieceMove({ ...piece, position: startPosition }, finalPosition)) {
 					validMoves.push(finalPosition);
 				}
 			}
@@ -583,59 +583,60 @@
 		return validMoves;
 	}
 
-	async function pieceMove(piece: ActivePiece | null, finalPosition: ChessPosition) {
-		if (!pieceMoveRule(piece, finalPosition)) return;
+	async function pieceMove(piece: ActivePiece, finalPosition: ChessPosition) {
+		if (!validatePieceMove(piece, finalPosition)) return;
 
 		// Check if the king is in danger after making the move
-		if (kingCanBeCaputuredAfterMove(piece, finalPosition)) return;
+		if (kingCanBeCaputuredAfterMove(piece, finalPosition)) return false;
 
 		if (!piece) return;
 		// Update board position
-		boardPosition[finalPosition] = {
+		board[finalPosition] = {
 			piece: {
 				...piece.piece
 			},
 			player: piece.player
 		};
 
-		delete boardPosition[piece.position];
+		delete board[piece.position];
 
-		updateAllPossibleMove();
+		resetAllPossibleMove();
 
 		moveHistory = [...moveHistory, piece];
 
-		const enemyKingPosition =
-			Object.entries(boardPosition).find(
-				([position, piece2]) => piece2?.player !== piece.player && piece2?.piece.name === 'king'
-			)?.[0] || null;
+		if (gameOver(piece, finalPosition)) return;
+
+		activePiece = null;
+
+		activePlayer = activePlayer === PLAYER_WHITE ? PLAYER_BLACK : PLAYER_WHITE;
+	}
+
+	function gameOver(piece: ActivePiece, finalPosition: ChessPosition) {
+		const enemyKingPosition = Object.entries(board).find(
+			([_, boardPiece]) => boardPiece?.player !== piece.player && boardPiece?.piece.name === 'king'
+		)?.[0]!;
 
 		const pieceValidMove = validPieceMove(piece, finalPosition);
 
-		if (pieceValidMove.includes(enemyKingPosition!)) {
-			if (boardPosition[enemyKingPosition!]!.piece.possibleMove.length === 0) {
+		if (pieceValidMove.includes(enemyKingPosition)) {
+			if (board[enemyKingPosition]!.piece.possibleMove.length === 0) {
 				const opponentCanAttackOurChecker = Object.entries(
 					Object.fromEntries(
-						Object.entries(boardPosition).filter(([_, value]) => value?.player !== piece.player)
+						Object.entries(board).filter(([_, value]) => value?.player !== piece.player)
 					)
 				)
 					.map(([_, piece]) => piece?.piece.possibleMove)
 					.flat();
 
-				console.log(opponentCanAttackOurChecker, finalPosition);
-				console.log(opponentCanAttackOurChecker.includes(finalPosition));
-
 				if (!opponentCanAttackOurChecker.includes(finalPosition)) {
 					alert('gameover');
 					winner = piece.player;
 					activePiece = null;
-					return;
+					return true;
 				}
 			}
 		}
-
-		activePiece = null;
-
-		activePlayer = activePlayer === PLAYER_WHITE ? PLAYER_BLACK : PLAYER_WHITE;
+		return false;
 	}
 
 	function setActivePiece(piece: PlayerPiece, startPosition: ChessPosition) {
@@ -643,7 +644,7 @@
 	}
 
 	function onCellClick(position: ChessPosition) {
-		let pieceOnPosition = boardPosition[position];
+		let pieceOnPosition = board[position];
 		if (activePiece && (!pieceOnPosition || pieceOnPosition.player !== activePlayer)) {
 			pieceMove(activePiece, position);
 		} else {
@@ -653,39 +654,29 @@
 		}
 	}
 
-	function updateAllPossibleMove() {
-		let shallowBoard: BoardPosition = {};
-		for (let position in boardPosition) {
-			let validMoves = [];
-			for (let vertical = 1; vertical <= 8; vertical++) {
-				for (let horizontal = 1; horizontal <= 8; horizontal++) {
-					const finalPosition = `${vertical}_${horizontal}` as `${number}_${number}`;
-					if (boardPosition[position]) {
-						if (pieceMoveRule({ ...boardPosition[position]!, position }, finalPosition)) {
-							validMoves.push(finalPosition);
-						}
-					}
-				}
-			}
-
-			if (boardPosition[position]) {
-				shallowBoard[position] = {
-					piece: {
-						icon: boardPosition[position]!.piece.icon!,
-						name: boardPosition[position]!.piece.name!,
-						rule: boardPosition[position]!.piece.rule!,
-						possibleMove: validMoves
-					},
-					player: boardPosition[position]!.player!
-				};
-			}
+	// TODO: Improvement in this area
+	/**
+	 * Somehow if we update directly to board, we get some random result,
+	 * so we need to store it on temp data then store to the real board
+	 */
+	function resetAllPossibleMove() {
+		let tempBoard: Board = {};
+		for (const position in board) {
+			const { piece, player } = board[position]!;
+			tempBoard[position] = {
+				piece: {
+					...piece,
+					possibleMove: validPieceMove({ piece, player }, position)
+				},
+				player: player
+			};
 		}
 
-		boardPosition = shallowBoard;
+		board = tempBoard;
 	}
 
 	onMount(() => {
-		updateAllPossibleMove();
+		resetAllPossibleMove();
 	});
 </script>
 
@@ -696,7 +687,7 @@
 		}}
 		{activePlayer}
 		{activePiece}
-		{boardPosition}
+		{board}
 		rotateable={boardRotateable}
 	>
 		<div slot="cell" let:position>
@@ -704,10 +695,10 @@
 				<div
 					class="
 						w-4 h-4 rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
-						{boardPosition[position] !== undefined ? '' : 'bg-gray-900 bg-opacity-20'}
+						{board[position] !== undefined ? '' : 'bg-gray-900 bg-opacity-20'}
 					"
 				>
-					{#if boardPosition[position] !== undefined}
+					{#if board[position] !== undefined}
 						<Icon
 							icon="mdi:sword"
 							class="
@@ -721,6 +712,14 @@
 		</div>
 	</ChessBoard>
 	<ChessMoveHistory moves={moveHistory} />
+	<!-- <div class="flex items-start mb-6 text-white">
+		<div class="flex items-center h-5">
+			<input id="boardRotateable" type="checkbox" bind:checked={boardRotateable} />
+		</div>
+		<label for="boardRotateable" class="ml-2 text-sm font-medium text-white">
+			Rotate (Based on active player)
+		</label>
+	</div> -->
 </div>
 <div class="text-white text-center text-2xl font-bold">
 	{#if winner}

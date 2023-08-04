@@ -10,13 +10,18 @@ declare global {
 	}
 
 	interface PlayerPiece {
-		piece: Piece;
 		player: Player;
+		piece: Piece;
 	}
 
 	type PieceName = 'rook' | 'knight' | 'bishop' | 'queen' | 'king' | 'pawn';
+
+	/**
+	 * {num}_{num}
+	 * row_col
+	 */
 	type ChessPosition = string;
-	type BoardPosition = Partial<Record<ChessPosition, PlayerPiece>>;
+	type Board = Partial<Record<ChessPosition, PlayerPiece>>;
 
 	interface ActivePiece extends PlayerPiece {
 		position: ChessPosition;
@@ -25,6 +30,7 @@ declare global {
 	interface PlayerPieceMove extends PlayerPiece {
 		position: ChessPosition;
 	}
+
 	type PieceMoveHistory = Array<PlayerPieceMove>;
 }
 

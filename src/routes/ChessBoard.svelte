@@ -4,7 +4,7 @@
 
 	const dispatch = createEventDispatcher();
 
-	export let boardPosition: BoardPosition = {};
+	export let board: Board = {};
 	export let activePlayer: Player = 1;
 	export let activePiece: ActivePiece | null = null;
 	export let rotateable: boolean = true;
@@ -12,7 +12,7 @@
 	const PLAYER_WHITE: Player = 1;
 	const PLAYER_BLACK: Player = 2;
 
-	$: pieceInBoard = (position: ChessPosition) => boardPosition[position];
+	$: pieceInBoard = (position: ChessPosition) => board[position];
 
 	const VERTICAL_DIRECTION = [1, 2, 3, 4, 5, 6, 7, 8];
 	const HORIZONTAL_DIRECTION = [1, 2, 3, 4, 5, 6, 7, 8];
@@ -38,10 +38,7 @@
 		});
 	}
 
-	$: rotate = () => {
-		if (!rotateable) return '';
-		return activePlayer === PLAYER_BLACK ? 'rotate-180' : '';
-	};
+	$: rotate = !rotateable ? '' : activePlayer === PLAYER_BLACK ? 'rotate-180' : '';
 </script>
 
 <div
@@ -59,9 +56,7 @@
 				class="
 					h-11 w-11 sm:h-14 sm:w-14 md:h-16 md:w-16 relative flex justify-center items-center transition-width duration-300 transition-border
 					{activePiece?.position === position ? '!bg-green-600 !bg-opacity-60 ' : ''}
-					{isOdd(vertical)
-					? 'odd:bg-[#e9edcc] even:bg-[#779954]'
-					: 'odd:bg-[#779954] even:bg-[#e9edcc]'} 
+					{isOdd(vertical) ? 'odd:bg-[#e9edcc] even:bg-[#779954]' : 'odd:bg-[#779954] even:bg-[#e9edcc]'} 
 				"
 				on:click={() => {
 					onCellClick(position);
