@@ -214,7 +214,7 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 			const [startVertical, startHorizontal] = startPosition.split('_').map(Number);
 			const [finalVertical, finalHorizontal] = finalPosition.split('_').map(Number);
 
-			const canCastle = (
+			const castle = (
 				player: Player,
 				startVertical: number,
 				startHorizontal: number,
@@ -231,18 +231,27 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 					(player === 1 && startVertical === 1 && startHorizontal === 5) ||
 					(player !== 1 && startVertical === 8 && startHorizontal === 5)
 				) {
-					const leftRookPosition = player === 1 ? '1_1' : '8_1';
-					const rightRookPosition = player === 1 ? '1_8' : '8_8';
+					const leftRookPosition = player === PLAYER_WHITE ? '1_1' : '8_1';
+					const rightRookPosition = player === PLAYER_WHITE ? '1_8' : '8_8';
+					const leftRook = board[leftRookPosition];
+					const rightRook = board[leftRookPosition];
 
 					if (
-						(board[leftRookPosition]?.piece.name === CHESS_PIECE.rook.name &&
-							[4, 3].includes(finalHorizontal) &&
-							finalVertical === startVertical) ||
-						(board[rightRookPosition]?.piece.name === CHESS_PIECE.rook.name &&
-							[6, 7].includes(finalHorizontal) &&
-							finalVertical === startVertical)
+						(leftRook?.piece.name === CHESS_PIECE.rook.name &&
+							finalHorizontal === 3 &&
+							finalVertical === startVertical &&
+							leftRook?.player === player) ||
+						(rightRook?.piece.name === CHESS_PIECE.rook.name &&
+							finalHorizontal === 7 &&
+							finalVertical === startVertical &&
+							rightRook?.player === player)
 					) {
-						return true;
+						if (finalHorizontal === 7 && !board[`${finalVertical}_6`]) {
+							return true;
+						}
+						if (finalHorizontal === 3 && !board[`${finalVertical}_4`]) {
+							return true;
+						}
 					}
 				}
 				// }
@@ -250,24 +259,30 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 			};
 
 			// TODO: castle
-			if (canCastle(player, startVertical, startHorizontal, finalVertical, finalHorizontal)) {
+			if (castle(player, startVertical, startHorizontal, finalVertical, finalHorizontal)) {
 				return true;
 			}
+
+			const inCheckAfterMove = Object.entries(
+				Object.fromEntries(Object.entries(board).filter(([_, value]) => value?.player !== player))
+			)
+				.map(([_, piece]) => piece?.piece.possibleMoves)
+				.flat()
+				.includes(`${finalVertical}_${finalHorizontal}`);
+
+			const test = Object.entries(
+				Object.fromEntries(Object.entries(board).filter(([_, value]) => value?.player !== player))
+			);
+			console.log(player);
+			console.log(test);
+
+			if (inCheckAfterMove) return false;
 
 			// Check if the move is one square in any direction
 			if (
 				Math.abs(finalVertical - startVertical) <= 1 &&
 				Math.abs(finalHorizontal - startHorizontal) <= 1
 			) {
-				const inCheckAfterMove = Object.entries(
-					Object.fromEntries(Object.entries(board).filter(([_, value]) => value?.player !== player))
-				)
-					.map(([_, piece]) => piece?.piece.possibleMoves)
-					.flat()
-					.includes(`${finalVertical}_${finalHorizontal}`);
-
-				if (inCheckAfterMove) return false;
-
 				// Check if the destination position is empty or has an enemy piece
 				const destinationPiece = board[`${finalVertical}_${finalHorizontal}`];
 				if (!destinationPiece || destinationPiece.player !== player) {
@@ -553,6 +568,7 @@ const helpers = {
 	): ChessPosition[] => {
 		const validMoves: ChessPosition[] = [];
 
+		// Loop through each cell, and validate if piece can move to there from current position
 		for (let vertical = 1; vertical <= 8; vertical++) {
 			for (let horizontal = 1; horizontal <= 8; horizontal++) {
 				const finalPosition = `${vertical}_${horizontal}`;
@@ -603,7 +619,7 @@ const helpers = {
 				.filter((kingPosibleMove) => !pieceAllValidMove.includes(kingPosibleMove));
 
 			if (enemyKingPossibleMove.length === 0) {
-				tempBoard = helpers.allPossibleMove(tempBoard)
+				tempBoard = helpers.allPossibleMove(tempBoard);
 				const opponentCanAttackOurChecker = Object.entries(
 					Object.fromEntries(
 						Object.entries(tempBoard).filter(([_, value]) => value?.player !== player)
@@ -611,7 +627,6 @@ const helpers = {
 				)
 					.map(([_, piece]) => piece?.piece.possibleMoves)
 					.flat();
-				console.log(opponentCanAttackOurChecker, finalPosition)
 
 				if (!opponentCanAttackOurChecker.includes(finalPosition)) {
 					// TODO: Check if opponent can stand in checker routes to king
@@ -625,21 +640,18 @@ const helpers = {
 		const tempBoard: Board = {};
 		for (const position in board) {
 			const boardPosition = board[position];
-			if (boardPosition) {
-				if (boardPosition.piece && boardPosition.player) {
-					tempBoard[position] = {
-						piece: {
-							...boardPosition.piece,
-							possibleMoves: helpers.validPieceMoves(board, {
-								piece: boardPosition.piece,
-								player: boardPosition.player,
-								startPosition: position
-							})
-						},
-						player: boardPosition.player
-					};
-				}
-			}
+			if (!boardPosition) continue;
+			tempBoard[position] = {
+				piece: {
+					...boardPosition.piece,
+					possibleMoves: helpers.validPieceMoves(board, {
+						piece: boardPosition.piece,
+						player: boardPosition.player,
+						startPosition: position
+					})
+				},
+				player: boardPosition.player
+			};
 		}
 		return tempBoard;
 	},

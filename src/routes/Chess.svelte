@@ -72,7 +72,7 @@
 
 		if (!piece) return;
 
-		// TODO: Refactor this logic
+		// TODO: Refactor this logic to castle
 		if (piece.piece.name === CHESS_PIECE.king.name) {
 			const [startVertical, startHorizontal] = piece.position.split('_').map(Number);
 			const [finalVertical, finalHorizontal] = finalPosition.split('_').map(Number);
@@ -137,7 +137,7 @@
 
 		moveHistory = [...moveHistory, piece];
 
-		await resetAllPossibleMove(tempBoard);
+		board = chessHelper.allPossibleMove(tempBoard);
 
 		if (
 			chessHelper.gameOver(tempBoard, {
@@ -187,6 +187,11 @@
 			if (!pieceOnPosition) return;
 			if (pieceOnPosition.player !== activePlayer) return;
 			setActivePiece(pieceOnPosition, position);
+			pieceOnPosition.piece.possibleMoves = chessHelper.validPieceMoves(board, {
+				piece: pieceOnPosition.piece,
+				player: pieceOnPosition.player,
+				startPosition: position
+			});
 		}
 	}
 
@@ -201,7 +206,7 @@
 	}
 
 	onMount(async () => {
-		await resetAllPossibleMove(board);
+		board = chessHelper.allPossibleMove(board);
 		// setActivePiece(board[`3_6`]!, `3_6`);
 		// await new Promise((resolve) => setTimeout(resolve, 1000));
 		// pieceMove(activePiece!, `7_6`);
