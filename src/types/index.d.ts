@@ -15,6 +15,7 @@ declare global {
 	}
 
 	interface PlayerPiece {
+		id: string;
 		player: Player;
 		piece: Piece;
 	}
@@ -36,7 +37,10 @@ declare global {
 		position: ChessPosition;
 	}
 
-	type PieceMoveHistory = Array<PlayerPieceMove>;
+	type PieceMoveHistory = Array<{
+		startPosition: PlayerPieceMove;
+		endPosition: PlayerPieceMove;
+	}>;
 
 	type PlayerTime = Record<Player, number>;
 

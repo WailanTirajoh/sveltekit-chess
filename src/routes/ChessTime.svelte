@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { PLAYER_BLACK } from '$lib/chess';
+	import { PLAYER_BLACK } from '$lib/chess/core'
 
 	export let timeLeft: number;
 	export let initialTime: number;

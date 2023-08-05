@@ -1,5 +1,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-unused-vars */
+
+import { uuidv4 } from '$lib/utils/uuid';
+
 // TODO: Findout where to put this in chess lib.
 const PLAYER_WHITE: Player = 1;
 const PLAYER_BLACK: Player = 2;
@@ -270,12 +273,6 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 				.flat()
 				.includes(`${finalVertical}_${finalHorizontal}`);
 
-			const test = Object.entries(
-				Object.fromEntries(Object.entries(board).filter(([_, value]) => value?.player !== player))
-			);
-			console.log(player);
-			console.log(test);
-
 			if (inCheckAfterMove) return false;
 
 			// Check if the move is one square in any direction
@@ -387,135 +384,167 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 		}
 	}
 };
-const CHESS_START_POSITION = {
+const CHESS_START_POSITION: Board = {
 	// White starting position
 	'1_1': {
+		id: 'f323344f-028a-4923-ac4a-7cd3bb86e1b2',
 		piece: CHESS_PIECE.rook,
 		player: PLAYER_WHITE
 	},
 	'1_2': {
+		id: '49a7794f-f66d-4f7a-b000-a4590b2db39c',
 		piece: CHESS_PIECE.knight,
 		player: PLAYER_WHITE
 	},
 	'1_3': {
+		id: '38c99c88-afdf-4d5b-9035-911eb4f3e2d3',
 		piece: CHESS_PIECE.bishop,
 		player: PLAYER_WHITE
 	},
 	'1_4': {
+		id: 'b498a47f-5793-4bc6-9922-19e1bf4325b3',
 		piece: CHESS_PIECE.queen,
 		player: PLAYER_WHITE
 	},
 	'1_5': {
+		id: '4c8e35e7-c985-465d-8781-6e20b0ecfc7b',
 		piece: CHESS_PIECE.king,
 		player: PLAYER_WHITE
 	},
 	'1_6': {
+		id: '6ac6a394-57ef-472c-9704-a589dbc3d3f2',
 		piece: CHESS_PIECE.bishop,
 		player: PLAYER_WHITE
 	},
 	'1_7': {
+		id: '801b02ee-43a0-4734-b29c-611b1a22f3df',
 		piece: CHESS_PIECE.knight,
 		player: PLAYER_WHITE
 	},
 	'1_8': {
+		id: 'bb1ff1ce-a48e-48d6-b83d-51337edc176a',
 		piece: CHESS_PIECE.rook,
 		player: PLAYER_WHITE
 	},
 	'2_1': {
+		id: 'fde0b9b0-9519-4e55-83c4-e2c655d1c9fc',
 		piece: CHESS_PIECE.pawn,
 		player: PLAYER_WHITE
 	},
 	'2_2': {
+		id: '5028b1e6-b1e7-4008-9e22-ca5464e3b3f5',
 		piece: CHESS_PIECE.pawn,
 		player: PLAYER_WHITE
 	},
 	'2_3': {
+		id: '02c8de71-f230-4b98-ab1d-45c7fff69c8d',
 		piece: CHESS_PIECE.pawn,
 		player: PLAYER_WHITE
 	},
 	'2_4': {
+		id: 'ec84a512-e292-47f9-a4ef-4a2bfc73c7bc',
 		piece: CHESS_PIECE.pawn,
 		player: PLAYER_WHITE
 	},
 	'2_5': {
+		id: '8babde15-afd2-40c2-8308-1a7cd9f9d77c',
 		piece: CHESS_PIECE.pawn,
 		player: PLAYER_WHITE
 	},
 	'2_6': {
+		id: '22a33bd5-2c70-4de8-9009-f66e5f879626',
 		piece: CHESS_PIECE.pawn,
 		player: PLAYER_WHITE
 	},
 	'2_7': {
+		id: 'd91fbf5d-f5b3-451e-911e-d879a3e4d675',
 		piece: CHESS_PIECE.pawn,
 		player: PLAYER_WHITE
 	},
 	'2_8': {
+		id: '5e80b0e0-c60b-4d6c-aa57-84d1a9b84bf5',
 		piece: CHESS_PIECE.pawn,
 		player: PLAYER_WHITE
 	},
 
 	// Black starting position
 	'8_1': {
+		id: 'a9020920-1cfc-4682-b8cd-2fecb0ab88e5',
 		piece: CHESS_PIECE.rook,
 		player: PLAYER_BLACK
 	},
 	'8_2': {
+		id: '446e2a06-a274-4df5-8422-1b522d3ce8e5',
 		piece: CHESS_PIECE.knight,
 		player: PLAYER_BLACK
 	},
 	'8_3': {
+		id: '418918fe-e86f-455a-846e-306b03636263',
 		piece: CHESS_PIECE.bishop,
 		player: PLAYER_BLACK
 	},
 	'8_4': {
+		id: 'b0e5266a-282b-4fbb-80a5-1bda2eeb7b22',
 		piece: CHESS_PIECE.queen,
 		player: PLAYER_BLACK
 	},
 	'8_5': {
+		id: '28ef0127-4802-400a-89aa-6f8705f9651d',
 		piece: CHESS_PIECE.king,
 		player: PLAYER_BLACK
 	},
 	'8_6': {
+		id: '256aa6ad-0b74-4c2c-b1fd-6c391874d63a',
 		piece: CHESS_PIECE.bishop,
 		player: PLAYER_BLACK
 	},
 	'8_7': {
+		id: '5bf5deb9-2c04-4086-ac6a-a0c81c07df41',
 		piece: CHESS_PIECE.knight,
 		player: PLAYER_BLACK
 	},
 	'8_8': {
+		id: '0a6a77e8-ae6a-42f5-bcea-33bb9836736e',
 		piece: CHESS_PIECE.rook,
 		player: PLAYER_BLACK
 	},
 	'7_1': {
+		id: '3114068f-1764-4992-854d-c97f66e3847b',
 		piece: CHESS_PIECE.pawn,
 		player: PLAYER_BLACK
 	},
 	'7_2': {
+		id: '7a53c8b9-ab64-4329-9c93-26dd523d99f5',
 		piece: CHESS_PIECE.pawn,
 		player: PLAYER_BLACK
 	},
 	'7_3': {
+		id: '661866b8-0646-4b7f-96e5-0957f3b16617',
 		piece: CHESS_PIECE.pawn,
 		player: PLAYER_BLACK
 	},
 	'7_4': {
+		id: '8e436f4a-0668-4fc1-82e0-5204f94112bc',
 		piece: CHESS_PIECE.pawn,
 		player: PLAYER_BLACK
 	},
 	'7_5': {
+		id: 'a9ae5e8d-28e0-46b2-8468-7d6289affc66',
 		piece: CHESS_PIECE.pawn,
 		player: PLAYER_BLACK
 	},
 	'7_6': {
+		id: 'c9238cc0-b8fa-4928-8a62-828d682dafa8',
 		piece: CHESS_PIECE.pawn,
 		player: PLAYER_BLACK
 	},
 	'7_7': {
+		id: 'd36e62be-3fc3-4142-b996-7c17904c4f04',
 		piece: CHESS_PIECE.pawn,
 		player: PLAYER_BLACK
 	},
 	'7_8': {
+		id: '7a668a90-02aa-41c7-9672-d4ae69bb8534',
 		piece: CHESS_PIECE.pawn,
 		player: PLAYER_BLACK
 	}
@@ -619,7 +648,7 @@ const helpers = {
 				.filter((kingPosibleMove) => !pieceAllValidMove.includes(kingPosibleMove));
 
 			if (enemyKingPossibleMove.length === 0) {
-				tempBoard = helpers.allPossibleMove(tempBoard);
+				tempBoard = helpers.generateAllPossibleMoves(tempBoard);
 				const opponentCanAttackOurChecker = Object.entries(
 					Object.fromEntries(
 						Object.entries(tempBoard).filter(([_, value]) => value?.player !== player)
@@ -636,12 +665,13 @@ const helpers = {
 		}
 		return false;
 	},
-	allPossibleMove: (board: Board) => {
+	generateAllPossibleMoves: (board: Board) => {
 		const tempBoard: Board = {};
 		for (const position in board) {
 			const boardPosition = board[position];
 			if (!boardPosition) continue;
 			tempBoard[position] = {
+				id: boardPosition.id,
 				piece: {
 					...boardPosition.piece,
 					possibleMoves: helpers.validPieceMoves(board, {
@@ -651,6 +681,18 @@ const helpers = {
 					})
 				},
 				player: boardPosition.player
+			};
+		}
+		return tempBoard;
+	},
+	generateMissingId: (board: Board) => {
+		const tempBoard: Board = {};
+		for (const position in board) {
+			const boardPosition = board[position];
+			if (!boardPosition) continue;
+			tempBoard[position] = {
+				...boardPosition,
+				id: boardPosition.id ?? uuidv4()
 			};
 		}
 		return tempBoard;
@@ -670,13 +712,14 @@ const helpers = {
 
 		// Update board position
 		tempBoard[finalPosition] = {
+			id: board[startPosition]!.id,
 			piece: piece,
 			player: player
 		};
 
 		delete tempBoard[startPosition];
 
-		tempBoard = helpers.allPossibleMove(tempBoard);
+		tempBoard = helpers.generateAllPossibleMoves(tempBoard);
 
 		const oponentPieceAvailableMove = Object.entries(
 			Object.fromEntries(Object.entries(tempBoard).filter(([_, value]) => value?.player !== player))
@@ -698,4 +741,10 @@ const helpers = {
 	}
 };
 
-export { helpers, PLAYER_BLACK, PLAYER_WHITE, CHESS_PIECE, CHESS_START_POSITION };
+export {
+	helpers,
+	PLAYER_BLACK,
+	PLAYER_WHITE,
+	CHESS_PIECE,
+	CHESS_START_POSITION,
+};

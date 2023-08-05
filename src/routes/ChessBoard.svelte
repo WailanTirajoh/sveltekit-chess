@@ -1,22 +1,10 @@
 <script lang="ts">
+	import { PLAYER_BLACK } from '$lib/chess/core';
 	import Icon from '@iconify/svelte';
 	import { createEventDispatcher } from 'svelte';
 
-	const dispatch = createEventDispatcher();
-
-	export let board: Board = {};
-	export let activePlayer: Player = 1;
-	export let activePiece: ActivePiece | null = null;
-	export let rotateable: boolean = true;
-
-	const PLAYER_WHITE: Player = 1;
-	const PLAYER_BLACK: Player = 2;
-
-	$: pieceInBoard = (position: ChessPosition) => board[position];
-
 	const VERTICAL_DIRECTION = [1, 2, 3, 4, 5, 6, 7, 8];
 	const HORIZONTAL_DIRECTION = [1, 2, 3, 4, 5, 6, 7, 8];
-	const VERTICAL_DIRECTION_REVERSE = VERTICAL_DIRECTION.reverse();
 	const HORIZONTAL_ALIAS: Record<number, string> = {
 		1: 'a',
 		2: 'b',
@@ -28,6 +16,17 @@
 		8: 'h'
 	};
 
+	const dispatch = createEventDispatcher();
+
+	export let board: Board = {};
+	export let activePlayer: Player = 1;
+	export let activePiece: ActivePiece | null = null;
+	export let rotateable: boolean = true;
+
+	$: rotate = !rotateable ? '' : activePlayer === PLAYER_BLACK ? 'rotate-180' : '';
+
+	const VERTICAL_DIRECTION_REVERSE = VERTICAL_DIRECTION.reverse();
+
 	function isOdd(number: number) {
 		return number % 2 === 0;
 	}
@@ -37,8 +36,6 @@
 			position
 		});
 	}
-
-	$: rotate = !rotateable ? '' : activePlayer === PLAYER_BLACK ? 'rotate-180' : '';
 </script>
 
 <div
@@ -50,6 +47,7 @@
 	{#each VERTICAL_DIRECTION_REVERSE as vertical}
 		{#each HORIZONTAL_DIRECTION as horizontal}
 			{@const position = `${vertical}_${horizontal}`}
+			{@const piece = board[position]}
 			<button
 				id={position}
 				aria-label="chess-board-cell-${position}"
@@ -62,10 +60,10 @@
 					onCellClick(position);
 				}}
 			>
-				{#if pieceInBoard(position) !== undefined}
-					<div class={pieceInBoard(position)?.player === 1 ? 'text-white' : 'text-black'}>
+				{#if piece !== undefined}
+					<div class={piece?.player === 1 ? 'text-white' : 'text-black'}>
 						<Icon
-							icon={pieceInBoard(position)?.piece.icon ?? ''}
+							icon={piece?.piece.icon ?? ''}
 							class="
 								!w-6 !h-6 md:!w-8 md:!h-8 duration-300 								
 								{rotate}

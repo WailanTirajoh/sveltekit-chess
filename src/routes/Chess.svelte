@@ -2,7 +2,7 @@
 	import Icon from '@iconify/svelte';
 	import ChessBoard from './ChessBoard.svelte';
 	import ChessMoveHistory from './ChessMoveHistory.svelte';
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import ChessTime from './ChessTime.svelte';
 	import {
 		CHESS_PIECE,
@@ -11,7 +11,8 @@
 		PLAYER_WHITE,
 		helpers as chessHelper,
 		helpers
-	} from '$lib/chess';
+	} from '$lib/chess/core';
+	import ChessBookMove from './ChessBookMove.svelte';
 
 	// TODO Features:
 	/**
@@ -64,8 +65,8 @@
 			helpers.kingCanBeCaputuredAfterMove(tempBoard, {
 				piece: piece.piece,
 				startPosition: piece.position,
-				player: piece.player,
-				finalPosition
+				finalPosition,
+				player: piece.player
 			})
 		)
 			return false;
@@ -80,6 +81,7 @@
 			if (Math.abs(startHorizontal - finalHorizontal) === 2) {
 				if (finalHorizontal - startHorizontal > 0) {
 					tempBoard[`${startVertical}_${startHorizontal + 1}`] = {
+						id: tempBoard[`${startVertical}_${finalHorizontal + 1}`]!.id,
 						piece: {
 							...tempBoard[`${startVertical}_${finalHorizontal + 1}`]!.piece
 						},
@@ -89,6 +91,7 @@
 					delete tempBoard[`${startVertical}_${finalHorizontal + 1}`];
 					// Update board position
 					tempBoard[finalPosition] = {
+						id: piece.id,
 						piece: {
 							...piece.piece
 						},
@@ -97,6 +100,7 @@
 					delete tempBoard[piece.position];
 				} else {
 					tempBoard[`${startVertical}_${startHorizontal - 1}`] = {
+						id: tempBoard[`${startVertical}_${finalHorizontal - 2}`]!.id,
 						piece: {
 							...tempBoard[`${startVertical}_${finalHorizontal - 2}`]!.piece
 						},
@@ -106,6 +110,7 @@
 					delete tempBoard[`${startVertical}_${finalHorizontal - 2}`];
 					// Update board position
 					tempBoard[finalPosition] = {
+						id: piece.id,
 						piece: {
 							...piece.piece
 						},
@@ -117,6 +122,7 @@
 			} else {
 				// Update board position
 				tempBoard[finalPosition] = {
+					id: piece.id,
 					piece: {
 						...piece.piece
 					},
@@ -127,6 +133,7 @@
 		} else {
 			// Update board position
 			tempBoard[finalPosition] = {
+				id: piece.id,
 				piece: {
 					...piece.piece
 				},
@@ -135,9 +142,18 @@
 			delete tempBoard[piece.position];
 		}
 
-		moveHistory = [...moveHistory, piece];
+		moveHistory = [
+			...moveHistory,
+			{
+				startPosition: piece,
+				endPosition: {
+					...piece,
+					position: finalPosition
+				}
+			}
+		];
 
-		board = chessHelper.allPossibleMove(tempBoard);
+		board = chessHelper.generateAllPossibleMoves(tempBoard);
 
 		if (
 			chessHelper.gameOver(tempBoard, {
@@ -176,6 +192,12 @@
 
 	function setActivePiece(piece: PlayerPiece, startPosition: ChessPosition) {
 		activePiece = { ...piece, position: startPosition };
+		const pieceOnPosition = board[startPosition]!;
+		pieceOnPosition.piece.possibleMoves = chessHelper.validPieceMoves(board, {
+			piece: pieceOnPosition.piece,
+			player: pieceOnPosition.player,
+			startPosition: startPosition
+		});
 	}
 
 	function onCellClick(position: ChessPosition) {
@@ -187,33 +209,59 @@
 			if (!pieceOnPosition) return;
 			if (pieceOnPosition.player !== activePlayer) return;
 			setActivePiece(pieceOnPosition, position);
-			pieceOnPosition.piece.possibleMoves = chessHelper.validPieceMoves(board, {
-				piece: pieceOnPosition.piece,
-				player: pieceOnPosition.player,
-				startPosition: position
-			});
 		}
 	}
 
-	// TODO: Improvement in this area
-	/**
-	 * Somehow if we update directly to board, we get some random result,
-	 * so we need to store it on temp data then store to the real board
-	 */
-	async function resetAllPossibleMove(test: Board) {
-		const tempBoard = chessHelper.allPossibleMove({ ...test });
-		board = { ...tempBoard };
+	function resetBoard() {
+		timeLeft = {
+			'1': 60,
+			'2': 60
+		};
+		board = { ...CHESS_START_POSITION };
+		moveHistory = [];
+	}
+
+	async function onBoardMove(boardHistory: string) {
+		resetBoard();
+
+		const allMove = boardHistory.split('|');
+		const movePositions = allMove.map((move) => {
+			const [startPosition, finalPosition] = move.split(',');
+			return {
+				startPosition,
+				finalPosition
+			};
+		});
+
+		for (const movePosition of movePositions) {
+			const { startPosition, finalPosition } = movePosition;
+			if (startPosition) {
+				setActivePiece(board[startPosition]!, startPosition);
+			}
+			await new Promise((resolve) => setTimeout(resolve, 1000));
+			if (!finalPosition) continue;
+			if (activePiece) {
+				pieceMove(activePiece, finalPosition);
+			}
+			await new Promise((resolve) => setTimeout(resolve, 1000));
+		}
 	}
 
 	onMount(async () => {
-		board = chessHelper.allPossibleMove(board);
+		board = chessHelper.generateAllPossibleMoves(board);
 		// setActivePiece(board[`3_6`]!, `3_6`);
 		// await new Promise((resolve) => setTimeout(resolve, 1000));
 		// pieceMove(activePiece!, `7_6`);
 	});
+
+	onDestroy(() => {
+		if (timeinterval) clearInterval(timeinterval);
+	});
 </script>
 
-<div class="grid grid-cols-1 justify-center h-full gap-8 p-4 duration-100 max-w-4xl mx-auto">
+<div
+	class="grid grid-cols-1 lg:grid-cols-2 justify-center h-full gap-8 p-4 duration-100 max-w-6xl mx-auto"
+>
 	<div class="relative w-full flex flex-col gap-2">
 		<ChessTime timeLeft={timeLeft[2]} initialTime={60} player={PLAYER_BLACK} />
 		<ChessBoard
@@ -226,14 +274,15 @@
 			rotateable={boardRotateable}
 		>
 			<div slot="cell" let:position>
+				{@const piece = board[position]}
 				{#if activePiece?.piece.possibleMoves.includes(position)}
 					<div
 						class="
 								w-4 h-4 rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
-								{board[position] !== undefined ? '' : 'bg-gray-900 bg-opacity-20'}
+								{piece !== undefined ? '' : 'bg-gray-900 bg-opacity-20'}
 							"
 					>
-						{#if board[position] !== undefined}
+						{#if piece !== undefined}
 							<Icon
 								icon="mdi:sword"
 								class="
@@ -248,8 +297,9 @@
 		</ChessBoard>
 		<ChessTime timeLeft={timeLeft[1]} initialTime={60} player={PLAYER_WHITE} />
 	</div>
-	<div class="">
-		<!-- <ChessMoveHistory moves={moveHistory} /> -->
+	<div class="grid gap-2">
+		<ChessMoveHistory moves={moveHistory} />
+		<ChessBookMove on:boardMove={(event) => onBoardMove(event.detail)} />
 	</div>
 </div>
 <div class="text-white text-center text-2xl font-bold">

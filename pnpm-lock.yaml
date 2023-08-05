@@ -8,6 +8,7 @@ specifiers:
   '@sveltejs/adapter-auto': ^2.0.0
   '@sveltejs/kit': ^1.20.4
   '@types/cookie': ^0.5.1
+  '@types/uuid': ^9.0.2
   '@typescript-eslint/eslint-plugin': ^5.45.0
   '@typescript-eslint/parser': ^5.45.0
   autoprefixer: ^10.4.14
@@ -22,8 +23,12 @@ specifiers:
   tailwindcss: ^3.3.3
   tslib: ^2.4.1
   typescript: ^5.0.0
+  uuid: ^9.0.0
   vite: ^4.4.2
   vitest: ^0.32.2
+
+dependencies:
+  uuid: 9.0.0
 
 devDependencies:
   '@fontsource/fira-mono': 4.5.10
@@ -33,6 +38,7 @@ devDependencies:
   '@sveltejs/adapter-auto': 2.1.0_@sveltejs+kit@1.22.4
   '@sveltejs/kit': 1.22.4_svelte@4.1.2+vite@4.4.8
   '@types/cookie': 0.5.1
+  '@types/uuid': 9.0.2
   '@typescript-eslint/eslint-plugin': 5.62.0_c42x62htuvinjyo6sqia6oy3e4
   '@typescript-eslint/parser': 5.62.0_7haavtekmro7ptbnqmctjaodju
   autoprefixer: 10.4.14_postcss@8.4.27
@@ -531,6 +537,10 @@ packages:
 
   /@types/semver/7.5.0:
     resolution: {integrity: sha512-G8hZ6XJiHnuhQKR7ZmysCeJWE08o8T0AXtk5darsCaTVsYZhhgUrq53jizaR2FvsoeCwJhlmwTjkXBY5Pn/ZHw==}
+    dev: true
+
+  /@types/uuid/9.0.2:
+    resolution: {integrity: sha512-kNnC1GFBLuhImSnV7w4njQkUiJi0ZXUycu1rUaouPqiKlXkh77JKgdRnTAp1x5eBwcIwbtI+3otwzuIDEuDoxQ==}
     dev: true
 
   /@typescript-eslint/eslint-plugin/5.62.0_c42x62htuvinjyo6sqia6oy3e4:
@@ -2419,6 +2429,11 @@ packages:
   /util-deprecate/1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
     dev: true
+
+  /uuid/9.0.0:
+    resolution: {integrity: sha512-MXcSTerfPa4uqyzStbRoTgt5XIe3x5+42+q1sDuy3R5MDk66URdLMOZe5aPX/SQd+kuYAh0FdP/pO28IkQyTeg==}
+    hasBin: true
+    dev: false
 
   /vite-node/0.32.4_@types+node@20.4.5:
     resolution: {integrity: sha512-L2gIw+dCxO0LK14QnUMoqSYpa9XRGnTTTDjW2h19Mr+GR0EFj4vx52W41gFXfMLqpA00eK4ZjOVYo1Xk//LFEw==}
