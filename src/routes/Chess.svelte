@@ -202,9 +202,9 @@
 
 	onMount(async () => {
 		await resetAllPossibleMove(board);
-		setActivePiece(board[`3_6`]!, `3_6`);
-		await new Promise((resolve) => setTimeout(resolve, 1000));
-		pieceMove(activePiece!, `7_6`);
+		// setActivePiece(board[`3_6`]!, `3_6`);
+		// await new Promise((resolve) => setTimeout(resolve, 1000));
+		// pieceMove(activePiece!, `7_6`);
 	});
 </script>
 

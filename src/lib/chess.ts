@@ -386,7 +386,7 @@ const CHESS_START_POSITION = {
 		piece: CHESS_PIECE.bishop,
 		player: PLAYER_WHITE
 	},
-	'3_6': {
+	'1_4': {
 		piece: CHESS_PIECE.queen,
 		player: PLAYER_WHITE
 	},
@@ -394,7 +394,7 @@ const CHESS_START_POSITION = {
 		piece: CHESS_PIECE.king,
 		player: PLAYER_WHITE
 	},
-	'4_3': {
+	'1_6': {
 		piece: CHESS_PIECE.bishop,
 		player: PLAYER_WHITE
 	},
@@ -464,7 +464,7 @@ const CHESS_START_POSITION = {
 		piece: CHESS_PIECE.bishop,
 		player: PLAYER_BLACK
 	},
-	'6_8': {
+	'8_7': {
 		piece: CHESS_PIECE.knight,
 		player: PLAYER_BLACK
 	},
@@ -488,10 +488,10 @@ const CHESS_START_POSITION = {
 		piece: CHESS_PIECE.pawn,
 		player: PLAYER_BLACK
 	},
-	// '7_5': {
-	// 	piece: CHESS_PIECE.pawn,
-	// 	player: PLAYER_BLACK
-	// },
+	'7_5': {
+		piece: CHESS_PIECE.pawn,
+		player: PLAYER_BLACK
+	},
 	'7_6': {
 		piece: CHESS_PIECE.pawn,
 		player: PLAYER_BLACK
