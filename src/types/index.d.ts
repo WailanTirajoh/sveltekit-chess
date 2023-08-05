@@ -1,12 +1,17 @@
 declare global {
 	type Player = 1 | 2;
 
+	interface PieceMove {
+		startPosition: string;
+		finalPosition: string;
+		player: Player;
+	}
 	// We will create rule interface latter when we get into this (Should be after drag & drop)
 	interface Piece {
 		name: PieceName;
 		icon: string;
-		rule: (startPosition: string, finalPosition: string, player: Player) => boolean;
-		possibleMove: Array<ChessPosition>;
+		rule: (board: Board, piecePosition: PieceMove) => boolean;
+		possibleMoves: Array<ChessPosition>;
 	}
 
 	interface PlayerPiece {
@@ -32,6 +37,13 @@ declare global {
 	}
 
 	type PieceMoveHistory = Array<PlayerPieceMove>;
+
+	type PlayerTime = Record<Player, number>;
+
+	interface Winner {
+		player: Player | null;
+		type: string | null;
+	}
 }
 
 export {};

@@ -11,9 +11,9 @@
 	<Chess />
 </section>
 
-<footer class="text-white text-center mt-2">
+<!-- <footer class="text-white text-center mt-2">
 	<a href="https://github.com/WailanTirajoh/sveltekit-chess" class="underline text-blue-400">Go to Github</a>
-</footer>
+</footer> -->
 
 <style>
 </style>
