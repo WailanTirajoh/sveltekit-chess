@@ -127,8 +127,9 @@
 			}
 		];
 
-		board = chessHelper.generateAllPossibleMoves(tempBoard);
-
+		tempBoard = chessHelper.generateAllPossibleMoves(tempBoard);
+		board = { ...tempBoard };
+		
 		const isGameOver = chessHelper.gameOver(tempBoard, {
 			piece: playerPiece.piece,
 			startPosition,

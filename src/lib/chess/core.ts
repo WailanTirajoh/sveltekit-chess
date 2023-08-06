@@ -260,7 +260,6 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 				return false;
 			};
 
-			// TODO: castle
 			if (castle(player, startVertical, startHorizontal, finalVertical, finalHorizontal)) {
 				return true;
 			}
@@ -271,6 +270,8 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 				.map(([_, piece]) => piece?.piece.possibleMoves)
 				.flat()
 				.includes(`${finalVertical}_${finalHorizontal}`);
+
+			// TODO: Need to have logic that piece can defend its own team here.
 
 			if (inCheckAfterMove) return false;
 
