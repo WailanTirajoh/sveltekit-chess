@@ -249,7 +249,6 @@
 			</div>
 		</ChessBoard>
 		<ChessTime timeLeft={timeLeft[1]} initialTime={60} player={PLAYER_WHITE} />
-		<pre>{board['4_3']?.piece.possibleMoves}</pre>
 	</div>
 	<div class="grid gap-2">
 		<ChessMoveHistory moves={moveHistories} />

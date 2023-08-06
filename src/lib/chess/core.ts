@@ -638,7 +638,6 @@ const helpers = {
 
 		if (pieceAllValidMove.includes(enemyKingPosition)) {
 			const enemyKing = tempBoard[enemyKingPosition];
-			console.log(enemyKing)
 			if (!enemyKing) return false;
 			const enemyKingPossibleMove = helpers
 				.validPieceMoves(tempBoard, {
@@ -647,7 +646,6 @@ const helpers = {
 					startPosition: enemyKingPosition
 				})
 				.filter((kingPosibleMove) => !pieceAllValidMove.includes(kingPosibleMove));
-			console.log(enemyKingPossibleMove)
 
 			if (enemyKingPossibleMove.length === 0) {
 				tempBoard = helpers.generateAllPossibleMoves(tempBoard);
