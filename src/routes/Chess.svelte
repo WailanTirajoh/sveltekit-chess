@@ -127,8 +127,7 @@
 			}
 		];
 
-		tempBoard = chessHelper.generateAllPossibleMoves(tempBoard);
-		board = { ...tempBoard };
+		board = chessHelper.generateAllPossibleMoves(tempBoard);
 
 		const isGameOver = chessHelper.gameOver(tempBoard, {
 			piece: playerPiece.piece,
@@ -188,6 +187,7 @@
 	}
 
 	function resetBoard() {
+		if (timeinterval) clearInterval(timeinterval);
 		board = { ...CHESS_START_POSITION };
 		moveHistory = [];
 		activePiece = null;

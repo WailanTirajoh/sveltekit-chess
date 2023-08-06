@@ -737,13 +737,7 @@ const helpers = {
 			}
 		}
 		return false;
-	},
+	}
 };
 
-export {
-	helpers,
-	PLAYER_BLACK,
-	PLAYER_WHITE,
-	CHESS_PIECE,
-	CHESS_START_POSITION,
-};
+export { helpers, PLAYER_BLACK, PLAYER_WHITE, CHESS_PIECE, CHESS_START_POSITION };
