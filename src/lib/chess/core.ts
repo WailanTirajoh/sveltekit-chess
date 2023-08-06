@@ -3,7 +3,6 @@
 
 import { uuidv4 } from '$lib/utils/uuid';
 
-// TODO: Findout where to put this in chess lib.
 const PLAYER_WHITE: Player = 1;
 const PLAYER_BLACK: Player = 2;
 const CHESS_PIECE: Record<PieceName, Piece> = {
@@ -237,7 +236,7 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 					const leftRookPosition = player === PLAYER_WHITE ? '1_1' : '8_1';
 					const rightRookPosition = player === PLAYER_WHITE ? '1_8' : '8_8';
 					const leftRook = board[leftRookPosition];
-					const rightRook = board[leftRookPosition];
+					const rightRook = board[rightRookPosition];
 
 					if (
 						(leftRook?.piece.name === CHESS_PIECE.rook.name &&
@@ -738,7 +737,7 @@ const helpers = {
 			}
 		}
 		return false;
-	}
+	},
 };
 
 export {

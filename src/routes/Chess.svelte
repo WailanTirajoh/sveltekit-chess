@@ -14,26 +14,6 @@
 	} from '$lib/chess/core';
 	import ChessBookMove from './ChessBookMove.svelte';
 
-	// TODO Features:
-	/**
-	 * - Castling
-	 * - En Passant
-	 * - Check (Done)
-	 * - Game Time
-	 * - Game Over
-	 * 		- resign
-	 * 		- checkmate (Done ~ but need improvement)
-	 * 		- time win
-	 * - Game Over Draw
-	 * 		- piece cant move, but no check
-	 * 		- acceptance draw
-	 * 		- Insufficient material for checkmate
-	 * 		- Lose on time, but enemy insufficient material for checkmate
-	 *
-	 * After Chess:
-	 * - multiplayer (firebase)
-	 */
-
 	// Reactive Data
 	let activePlayer: Player = PLAYER_WHITE;
 	let activePiece: ActivePiece | null = null;
@@ -50,121 +30,116 @@
 	};
 	let timeinterval: NodeJS.Timer;
 
-	async function pieceMove(piece: ActivePiece, finalPosition: ChessPosition) {
-		const tempBoard = board;
+	async function pieceMove(
+		playerPiece: PlayerPiece,
+		startPosition: ChessPosition,
+		finalPosition: ChessPosition
+	) {
+		let tempBoard = board;
 		const isValidMove = chessHelper.validateMovingPiece(tempBoard, {
-			piece: piece.piece,
+			piece: playerPiece.piece,
 			finalPosition,
-			startPosition: piece.position,
-			player: piece.player
+			startPosition,
+			player: playerPiece.player
 		});
 		if (!isValidMove) return;
 
-		// Check if the king is in danger after making the move
+		const kingCanBeCapturedAfterMove = helpers.kingCanBeCaputuredAfterMove(tempBoard, {
+			piece: playerPiece.piece,
+			startPosition,
+			finalPosition,
+			player: playerPiece.player
+		});
+		if (kingCanBeCapturedAfterMove) return false;
+
+		// TODO: Handle King Castle. 2 piece move so we need to create conditions.
+		const [startVertical, startHorizontal] = startPosition.split('_').map(Number);
+		const [finalVertical, finalHorizontal] = finalPosition.split('_').map(Number);
 		if (
-			helpers.kingCanBeCaputuredAfterMove(tempBoard, {
-				piece: piece.piece,
-				startPosition: piece.position,
-				finalPosition,
-				player: piece.player
-			})
-		)
-			return false;
-
-		if (!piece) return;
-
-		// TODO: Refactor this logic to castle
-		if (piece.piece.name === CHESS_PIECE.king.name) {
-			const [startVertical, startHorizontal] = piece.position.split('_').map(Number);
-			const [finalVertical, finalHorizontal] = finalPosition.split('_').map(Number);
-
-			if (Math.abs(startHorizontal - finalHorizontal) === 2) {
-				if (finalHorizontal - startHorizontal > 0) {
-					tempBoard[`${startVertical}_${startHorizontal + 1}`] = {
-						id: tempBoard[`${startVertical}_${finalHorizontal + 1}`]!.id,
-						piece: {
-							...tempBoard[`${startVertical}_${finalHorizontal + 1}`]!.piece
-						},
-						player: piece.player
-					};
-
-					delete tempBoard[`${startVertical}_${finalHorizontal + 1}`];
-					// Update board position
-					tempBoard[finalPosition] = {
-						id: piece.id,
-						piece: {
-							...piece.piece
-						},
-						player: piece.player
-					};
-					delete tempBoard[piece.position];
-				} else {
-					tempBoard[`${startVertical}_${startHorizontal - 1}`] = {
-						id: tempBoard[`${startVertical}_${finalHorizontal - 2}`]!.id,
-						piece: {
-							...tempBoard[`${startVertical}_${finalHorizontal - 2}`]!.piece
-						},
-						player: piece.player
-					};
-
-					delete tempBoard[`${startVertical}_${finalHorizontal - 2}`];
-					// Update board position
-					tempBoard[finalPosition] = {
-						id: piece.id,
-						piece: {
-							...piece.piece
-						},
-						player: piece.player
-					};
-					delete tempBoard[piece.position];
-				}
-				// Handle castle
-			} else {
-				// Update board position
-				tempBoard[finalPosition] = {
-					id: piece.id,
+			playerPiece.piece.name === CHESS_PIECE.king.name &&
+			Math.abs(startHorizontal - finalHorizontal) === 2
+		) {
+			if (finalHorizontal - startHorizontal > 0) {
+				// Move right rook
+				tempBoard[`${startVertical}_${startHorizontal + 1}`] = {
+					id: tempBoard[`${startVertical}_${finalHorizontal + 1}`]!.id,
 					piece: {
-						...piece.piece
+						...tempBoard[`${startVertical}_${finalHorizontal + 1}`]!.piece
 					},
-					player: piece.player
+					player: playerPiece.player
 				};
-				delete tempBoard[piece.position];
+				delete tempBoard[`${startVertical}_${finalHorizontal + 1}`];
+
+				// Move King
+				tempBoard[finalPosition] = {
+					id: playerPiece.id,
+					piece: {
+						...playerPiece.piece
+					},
+					player: playerPiece.player
+				};
+				delete tempBoard[startPosition];
+			} else {
+				// Move left rook
+				tempBoard[`${startVertical}_${startHorizontal - 1}`] = {
+					id: tempBoard[`${startVertical}_${finalHorizontal - 2}`]!.id,
+					piece: {
+						...tempBoard[`${startVertical}_${finalHorizontal - 2}`]!.piece
+					},
+					player: playerPiece.player
+				};
+				delete tempBoard[`${startVertical}_${finalHorizontal - 2}`];
+
+				// Move King
+				tempBoard[finalPosition] = {
+					id: playerPiece.id,
+					piece: {
+						...playerPiece.piece
+					},
+					player: playerPiece.player
+				};
+				delete tempBoard[startPosition];
 			}
 		} else {
 			// Update board position
 			tempBoard[finalPosition] = {
-				id: piece.id,
+				id: playerPiece.id,
 				piece: {
-					...piece.piece
+					...playerPiece.piece
 				},
-				player: piece.player
+				player: playerPiece.player
 			};
-			delete tempBoard[piece.position];
+			delete tempBoard[startPosition];
 		}
 
+		// Update move history
 		moveHistory = [
 			...moveHistory,
 			{
-				startPosition: piece,
+				startPosition: {
+					...playerPiece,
+					position: startPosition
+				},
 				endPosition: {
-					...piece,
+					...playerPiece,
 					position: finalPosition
 				}
 			}
 		];
 
-		board = chessHelper.generateAllPossibleMoves(tempBoard);
+		tempBoard = chessHelper.generateAllPossibleMoves(tempBoard);
+		board = { ...tempBoard };
 
-		if (
-			chessHelper.gameOver(tempBoard, {
-				piece: piece.piece,
-				startPosition: piece.position,
-				finalPosition,
-				player: piece.player
-			})
-		) {
+		const isGameOver = chessHelper.gameOver(tempBoard, {
+			piece: playerPiece.piece,
+			startPosition,
+			finalPosition,
+			player: playerPiece.player
+		});
+		if (isGameOver) {
+			// Todo: Change alert with custom toast. (We learn store on that toast feature.)
 			alert('Game Over');
-			winner.player = piece.player;
+			winner.player = playerPiece.player;
 			winner.type = 'Checkmate';
 			activePiece = null;
 			if (timeinterval) clearInterval(timeinterval);
@@ -175,7 +150,6 @@
 		activePlayer = activePlayer === PLAYER_WHITE ? PLAYER_BLACK : PLAYER_WHITE;
 
 		if (timeinterval) clearInterval(timeinterval);
-
 		timeinterval = setInterval(timeCountDown, 1000);
 	}
 
@@ -201,10 +175,11 @@
 	}
 
 	function onCellClick(position: ChessPosition) {
+		if (winner.player) return;
+
 		let pieceOnPosition = board[position];
-		if (winner.player) {
-		} else if (activePiece && (!pieceOnPosition || pieceOnPosition.player !== activePlayer)) {
-			pieceMove(activePiece, position);
+		if (activePiece && (!pieceOnPosition || pieceOnPosition.player !== activePlayer)) {
+			pieceMove(activePiece, activePiece.position, position);
 		} else {
 			if (!pieceOnPosition) return;
 			if (pieceOnPosition.player !== activePlayer) return;
@@ -213,12 +188,13 @@
 	}
 
 	function resetBoard() {
+		board = { ...CHESS_START_POSITION };
+		moveHistory = [];
+		activePiece = null;
 		timeLeft = {
 			'1': 60,
 			'2': 60
 		};
-		board = { ...CHESS_START_POSITION };
-		moveHistory = [];
 	}
 
 	async function onBoardMove(boardHistory: string) {
@@ -241,7 +217,7 @@
 			await new Promise((resolve) => setTimeout(resolve, 1000));
 			if (!finalPosition) continue;
 			if (activePiece) {
-				pieceMove(activePiece, finalPosition);
+				pieceMove(activePiece, activePiece.position, finalPosition);
 			}
 			await new Promise((resolve) => setTimeout(resolve, 1000));
 		}
@@ -249,9 +225,6 @@
 
 	onMount(async () => {
 		board = chessHelper.generateAllPossibleMoves(board);
-		// setActivePiece(board[`3_6`]!, `3_6`);
-		// await new Promise((resolve) => setTimeout(resolve, 1000));
-		// pieceMove(activePiece!, `7_6`);
 	});
 
 	onDestroy(() => {
@@ -262,8 +235,8 @@
 <div
 	class="grid grid-cols-1 lg:grid-cols-2 justify-center h-full gap-8 p-4 duration-100 max-w-6xl mx-auto"
 >
-	<div class="relative w-full flex flex-col gap-2">
-		<ChessTime timeLeft={timeLeft[2]} initialTime={60} player={PLAYER_BLACK} />
+	<div class="relative w-full flex flex-col rounded overflow-hidden">
+		<ChessTime class="rounded-t" timeLeft={timeLeft[2]} initialTime={60} player={PLAYER_BLACK} />
 		<ChessBoard
 			on:cellClick={(event) => {
 				onCellClick(event.detail.position);
