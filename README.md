@@ -23,6 +23,7 @@ Simple Chess built with SvelteKit.
       - [ ] Acceptance Draw offer
       - [ ] Insufficient Material
       - [ ] Lose on time, but enemy insufficient material for checkmate
+- [ ] Unit Test _(TODO: findings the testcase opensource and implement it here)_
 
 ## After All Features:
 - [ ] Multiplayer _(TBD Tech usage for realtime move)_
