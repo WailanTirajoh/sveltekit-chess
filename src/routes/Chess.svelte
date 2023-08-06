@@ -169,12 +169,12 @@
 			if (startPosition) {
 				setActivePiece(board[startPosition]!, startPosition);
 			}
-			// await new Promise((resolve) => setTimeout(resolve, 1000));
+			await new Promise((resolve) => setTimeout(resolve, 1000));
 			if (!finalPosition) continue;
 			if (activePiece) {
 				movePiece(activePiece, activePiece.position, finalPosition);
 			}
-			// await new Promise((resolve) => setTimeout(resolve, 1000));
+			await new Promise((resolve) => setTimeout(resolve, 1000));
 		}
 	}
 
