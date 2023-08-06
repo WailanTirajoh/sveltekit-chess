@@ -20,7 +20,7 @@
 		player: null,
 		type: null
 	};
-	let boardRotateable: boolean = false;
+	let boardRotateable = false;
 	let board: Board = CHESS_START_POSITION;
 
 	function onCellClick(position: ChessPosition) {
@@ -169,12 +169,12 @@
 			if (startPosition) {
 				setActivePiece(board[startPosition]!, startPosition);
 			}
-			await new Promise((resolve) => setTimeout(resolve, 1000));
+			// await new Promise((resolve) => setTimeout(resolve, 1000));
 			if (!finalPosition) continue;
 			if (activePiece) {
 				movePiece(activePiece, activePiece.position, finalPosition);
 			}
-			await new Promise((resolve) => setTimeout(resolve, 1000));
+			// await new Promise((resolve) => setTimeout(resolve, 1000));
 		}
 	}
 
@@ -228,7 +228,7 @@
 		>
 			<div slot="cell" let:position>
 				{@const piece = board[position]}
-				{#if activePiece?.piece.possibleMoves.includes(position)}
+				{#if activePiece?.piece.possibleMoves.includes(position) && activePiece.player !== piece?.player}
 					<div
 						class="
 								w-4 h-4 rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
@@ -249,6 +249,7 @@
 			</div>
 		</ChessBoard>
 		<ChessTime timeLeft={timeLeft[1]} initialTime={60} player={PLAYER_WHITE} />
+		<pre>{board['4_3']?.piece.possibleMoves}</pre>
 	</div>
 	<div class="grid gap-2">
 		<ChessMoveHistory moves={moveHistories} />

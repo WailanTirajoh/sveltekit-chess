@@ -135,7 +135,7 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 
 				// Check if the destination position is empty or has an enemy piece
 				const destinationPiece = board[`${finalVertical}_${finalHorizontal}`];
-				if (!destinationPiece || destinationPiece.player !== player) {
+				if (!destinationPiece || destinationPiece.player) {
 					// The move is valid if the destination is empty or has an enemy piece
 					return true;
 				}
@@ -569,7 +569,7 @@ const helpers = {
 		if (startPosition === finalPosition) return false;
 
 		// Piece cant eat his own piece xD
-		if (player === board[finalPosition]?.player) return false;
+		// if (player === board[finalPosition]?.player) return false;
 
 		// Stop when violating the rules
 		if (
@@ -638,6 +638,7 @@ const helpers = {
 
 		if (pieceAllValidMove.includes(enemyKingPosition)) {
 			const enemyKing = tempBoard[enemyKingPosition];
+			console.log(enemyKing)
 			if (!enemyKing) return false;
 			const enemyKingPossibleMove = helpers
 				.validPieceMoves(tempBoard, {
@@ -646,6 +647,7 @@ const helpers = {
 					startPosition: enemyKingPosition
 				})
 				.filter((kingPosibleMove) => !pieceAllValidMove.includes(kingPosibleMove));
+			console.log(enemyKingPossibleMove)
 
 			if (enemyKingPossibleMove.length === 0) {
 				tempBoard = helpers.generateAllPossibleMoves(tempBoard);
