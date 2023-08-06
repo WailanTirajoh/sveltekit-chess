@@ -17,8 +17,8 @@ Simple Chess built with SvelteKit.
 - [x] Game Time
 - [ ] Game Over
     - [ ] Resign
-    - [ ] Checkmate (Almost there~)
-    - [x] Time win (Done)
+    - [ ] Checkmate _(Almost there)_
+    - [x] Time win
     - [ ] Draw
       - [ ] Acceptance Draw offer
       - [ ] Insufficient Material
