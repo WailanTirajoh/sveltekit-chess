@@ -37,10 +37,10 @@ declare global {
 		position: ChessPosition;
 	}
 
-	type PieceMoveHistory = Array<{
+	type PieceMoveHistory = {
 		startPosition: PlayerPieceMove;
 		endPosition: PlayerPieceMove;
-	}>;
+	};
 
 	type PlayerTime = Record<Player, number>;
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-	export let moves: PieceMoveHistory;
+	export let moves: Array<PieceMoveHistory>;
 
 	function copy() {
 		const positions = moves.map((move) => {
