@@ -1,38 +1,35 @@
-# create-svelte
+# Simple Chess
+Simple Chess built with SvelteKit.
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/master/packages/create-svelte).
+## Features:
+- [ ] Piece & Move Rule
+  - [x] Rook
+  - [x] Knight
+  - [x] Bishop
+  - [x] Queen
+  - [ ] King
+    - [x] Basic Move
+    - [ ] Castling
+  - [ ] Pawn
+    - [x] Basic Move 
+    - [ ] En Passant
+- [x] Replay & Move History
+- [x] Game Time
+- [ ] Game Over
+    - [ ] Resign
+    - [ ] Checkmate (Almost there~)
+    - [x] Time win (Done)
+    - [ ] Draw
+      - [ ] Acceptance Draw offer
+      - [ ] Insufficient Material
+      - [ ] Lose on time, but enemy insufficient material for checkmate
 
-## Creating a project
+## After All Features:
+- [ ] Multiplayer _(TBD Tech usage for realtime move)_
 
-If you're seeing this, you've probably already done this step. Congrats!
-
-```bash
-# create a new project in the current directory
-npm create svelte@latest
-
-# create a new project in my-app
-npm create svelte@latest my-app
+## Bug Findings:
+1. Need to guard the checker router.
+Move:
 ```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```bash
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+2_5,4_5|7_5,5_5|1_7,3_6|8_2,6_3|1_6,4_3|8_7,6_6|3_6,5_7|7_4,5_4|4_5,5_4|6_6,5_4|5_7,7_6|8_5,7_6|1_4,3_6|7_6,8_7|4_3,5_4|8_4,5_4|3_6,5_4
 ```
-
-## Building
-
-To create a production version of your app:
-
-```bash
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
