@@ -8,9 +8,10 @@ const PLAYER_BLACK: Player = 2;
 const CHESS_PIECE: Record<PieceName, Piece> = {
 	rook: {
 		possibleMoves: [],
+		possibleAttacks: [],
 		name: 'rook',
 		icon: 'fa-solid:chess-rook',
-		rule: (board: Board, { startPosition, finalPosition }: PieceMove) => {
+		rule: (board: Board, { startPosition, finalPosition, player }: PieceMove) => {
 			const [startVertical, startHorizontal] = startPosition.split('_').map(Number);
 			const [finalVertical, finalHorizontal] = finalPosition.split('_').map(Number);
 
@@ -18,7 +19,12 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 				if (finalVertical > startVertical) {
 					let hasEnemyBeforeEnd = false;
 					for (let i = startVertical + 1; i < finalVertical; i++) {
-						if (board[`${i}_${finalHorizontal}`]) {
+						if (
+							board[`${i}_${finalHorizontal}`]?.piece.name === 'king' &&
+							board[`${i}_${finalHorizontal}`]?.player !== player
+						) {
+							// Do nothing
+						} else if (board[`${i}_${finalHorizontal}`]) {
 							hasEnemyBeforeEnd = true;
 							break;
 						}
@@ -28,7 +34,12 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 				if (finalVertical < startVertical) {
 					let hasEnemyBeforeEnd = false;
 					for (let i = startVertical - 1; i > finalVertical; i--) {
-						if (board[`${i}_${finalHorizontal}`]) {
+						if (
+							board[`${i}_${finalHorizontal}`]?.piece.name === 'king' &&
+							board[`${i}_${finalHorizontal}`]?.player !== player
+						) {
+							// Do nothing
+						} else if (board[`${i}_${finalHorizontal}`]) {
 							hasEnemyBeforeEnd = true;
 							break;
 						}
@@ -41,7 +52,12 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 				if (finalHorizontal > startHorizontal) {
 					let hasEnemyBeforeEnd = false;
 					for (let i = startHorizontal + 1; i < finalHorizontal; i++) {
-						if (board[`${finalVertical}_${i}`]) {
+						if (
+							board[`${finalVertical}_${i}`]?.piece.name === 'king' &&
+							board[`${finalVertical}_${i}`]?.player !== player
+						) {
+							// Do nothing
+						} else if (board[`${finalVertical}_${i}`]) {
 							hasEnemyBeforeEnd = true;
 							break;
 						}
@@ -51,7 +67,12 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 				if (finalHorizontal < startHorizontal) {
 					let hasEnemyBeforeEnd = false;
 					for (let i = startHorizontal - 1; i > finalHorizontal; i--) {
-						if (board[`${finalVertical}_${i}`]) {
+						if (
+							board[`${finalVertical}_${i}`]?.piece.name === 'king' &&
+							board[`${finalVertical}_${i}`]?.player !== player
+						) {
+							// Do nothing
+						} else if (board[`${finalVertical}_${i}`]) {
 							hasEnemyBeforeEnd = true;
 							break;
 						}
@@ -65,6 +86,7 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 	},
 	knight: {
 		possibleMoves: [],
+		possibleAttacks: [],
 		name: 'knight',
 		icon: 'fa6-solid:chess-knight',
 		rule: (board: Board, { startPosition, finalPosition }: PieceMove) => {
@@ -109,6 +131,7 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 	},
 	bishop: {
 		possibleMoves: [],
+		possibleAttacks: [],
 		name: 'bishop',
 		icon: 'tabler:chess-bishop-filled',
 		rule: (board: Board, { startPosition, finalPosition, player }: PieceMove) => {
@@ -125,7 +148,12 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 
 				// Check for obstacles in the path of the bishop
 				while (currentVertical !== finalVertical && currentHorizontal !== finalHorizontal) {
-					if (board[`${currentVertical}_${currentHorizontal}`]) {
+					if (
+						board[`${currentVertical}_${currentHorizontal}`]?.piece.name === 'king' &&
+						board[`${currentVertical}_${currentHorizontal}`]?.player !== player
+					) {
+						// Do nothing
+					} else if (board[`${currentVertical}_${currentHorizontal}`]) {
 						// There is an obstacle in the path, so bishop cannot move
 						return false;
 					}
@@ -147,6 +175,7 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 	},
 	queen: {
 		possibleMoves: [],
+		possibleAttacks: [],
 		name: 'queen',
 		icon: 'fa6-solid:chess-queen',
 		rule: (board: Board, { startPosition, finalPosition, player }: PieceMove) => {
@@ -164,7 +193,12 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 					// Horizontal move
 					const increment = finalHorizontal > startHorizontal ? 1 : -1;
 					for (let i = startHorizontal + increment; i !== finalHorizontal; i += increment) {
-						if (board[`${finalVertical}_${i}`]) {
+						if (
+							board[`${finalVertical}_${i}`]?.piece.name === 'king' &&
+							board[`${finalVertical}_${i}`]?.player !== player
+						) {
+							// Do nothing
+						} else if (board[`${finalVertical}_${i}`]) {
 							// There is an obstacle in the path, so queen cannot move
 							return false;
 						}
@@ -173,7 +207,12 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 					// Vertical move
 					const increment = finalVertical > startVertical ? 1 : -1;
 					for (let i = startVertical + increment; i !== finalVertical; i += increment) {
-						if (board[`${i}_${finalHorizontal}`]) {
+						if (
+							board[`${i}_${finalHorizontal}`]?.piece.name === 'king' &&
+							board[`${i}_${finalHorizontal}`]?.player !== player
+						) {
+							// Do nothing
+						} else if (board[`${i}_${finalHorizontal}`]) {
 							// There is an obstacle in the path, so queen cannot move
 							return false;
 						}
@@ -187,7 +226,12 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 					let currentHorizontal = startHorizontal + horizontalIncrement;
 
 					while (currentVertical !== finalVertical && currentHorizontal !== finalHorizontal) {
-						if (board[`${currentVertical}_${currentHorizontal}`]) {
+						if (
+							board[`${currentVertical}_${currentHorizontal}`]?.piece.name === 'king' &&
+							board[`${currentVertical}_${currentHorizontal}`]?.player !== player
+						) {
+							// Do nothing
+						} else if (board[`${currentVertical}_${currentHorizontal}`]) {
 							// There is an obstacle in the path, so queen cannot move
 							return false;
 						}
@@ -197,11 +241,11 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 				}
 
 				// Check if the destination position is empty or has an enemy piece
-				const destinationPiece = board[`${finalVertical}_${finalHorizontal}`];
-				if (!destinationPiece || destinationPiece.player !== player) {
-					// The move is valid if the destination is empty or has an enemy piece
-					return true;
-				}
+				// const destinationPiece = board[`${finalVertical}_${finalHorizontal}`];
+				// if (!destinationPiece) {
+				// 	// The move is valid if the destination is empty or has an enemy piece
+				// }
+				return true;
 			}
 
 			// If none of the conditions are satisfied, the move is not valid for the queen
@@ -210,6 +254,7 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 	},
 	king: {
 		possibleMoves: [],
+		possibleAttacks: [],
 		name: 'king',
 		icon: 'fa-solid:chess-king',
 		rule: (board: Board, { startPosition, finalPosition, player }: PieceMove) => {
@@ -267,11 +312,29 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 			const inCheckAfterMove = Object.entries(
 				Object.fromEntries(Object.entries(board).filter(([_, value]) => value?.player !== player))
 			)
-				.map(([_, piece]) => piece?.piece.possibleMoves)
+				.map(([position, piece]) => {
+					if (piece?.piece.name === 'king') {
+						const [vertical, horizontal] = position.split('_').map(Number);
+						const attackOffsets = [-1, 0, 1]; // Possible offsets for attacks
+
+						const possibleAttacks = [];
+
+						for (const vOffset of attackOffsets) {
+							for (const hOffset of attackOffsets) {
+								if (vOffset === 0 && hOffset === 0) {
+									continue; // Skip the current position
+								}
+
+								const attackPosition = `${vertical + vOffset}_${horizontal + hOffset}`;
+								possibleAttacks.push(attackPosition);
+							}
+						}
+						return possibleAttacks;
+					}
+					return piece?.piece.possibleAttacks;
+				})
 				.flat()
 				.includes(`${finalVertical}_${finalHorizontal}`);
-
-			// TODO: Need to have logic that piece can defend its own team here.
 
 			if (inCheckAfterMove) return false;
 
@@ -292,6 +355,7 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 	},
 	pawn: {
 		possibleMoves: [],
+		possibleAttacks: [],
 		name: 'pawn',
 		icon: 'fa-solid:chess-pawn',
 		rule: (board: Board, { startPosition, finalPosition, player }: PieceMove) => {
@@ -615,10 +679,70 @@ const helpers = {
 
 		return validMoves;
 	},
+	validAttackPieceMoves: (
+		board: Board,
+		{
+			piece,
+			startPosition,
+			player
+		}: {
+			piece: Piece;
+			startPosition: ChessPosition;
+			player: Player;
+		}
+	): ChessPosition[] => {
+		const validMoves: ChessPosition[] = [];
+
+		// Loop through each cell, and validate if piece can move to there from current position
+		for (let vertical = 1; vertical <= 8; vertical++) {
+			for (let horizontal = 1; horizontal <= 8; horizontal++) {
+				if (piece.name === 'pawn') {
+					const possibleAttacks =
+						player === PLAYER_WHITE
+							? [`${vertical + 1}_${horizontal - 1}`, `${vertical + 1}_${horizontal + 1}`]
+							: [`${vertical - 1}_${horizontal - 1}`, `${vertical - 1}_${horizontal + 1}`];
+					return possibleAttacks;
+				} else {
+					// let possibleAttacks = [];
+					// if (piece.name === 'king') {
+					// 	const attackOffsets = [-1, 0, 1]; // Possible offsets for attacks
+
+					// 	possibleAttacks = [];
+
+					// 	for (const vOffset of attackOffsets) {
+					// 		for (const hOffset of attackOffsets) {
+					// 			if (vOffset === 0 && hOffset === 0) {
+					// 				continue; // Skip the current position
+					// 			}
+
+					// 			const attackPosition = `${vertical + vOffset}_${horizontal + hOffset}`;
+					// 			possibleAttacks.push(attackPosition);
+					// 		}
+					// 	}
+					// 	return possibleAttacks;
+					// }
+
+					const finalPosition = `${vertical}_${horizontal}`;
+					const isValidMove = helpers.validateMovingPiece(board, {
+						piece,
+						startPosition,
+						finalPosition,
+						player
+					});
+					if (isValidMove) {
+						validMoves.push(finalPosition);
+					}
+				}
+			}
+		}
+
+		return validMoves;
+	},
 	gameOver: (
 		board: Board,
 		{
 			piece,
+			startPosition,
 			finalPosition,
 			player
 		}: { piece: Piece; startPosition: ChessPosition; finalPosition: ChessPosition; player: Player }
@@ -630,7 +754,7 @@ const helpers = {
 
 		if (!enemyKingPosition) return true;
 
-		const pieceAllValidMove = helpers.validPieceMoves(tempBoard, {
+		const pieceAllValidMove = helpers.validAttackPieceMoves(tempBoard, {
 			piece,
 			startPosition: finalPosition,
 			player: player
@@ -654,12 +778,18 @@ const helpers = {
 						Object.entries(tempBoard).filter(([_, value]) => value?.player !== player)
 					)
 				)
-					.map(([_, piece]) => piece?.piece.possibleMoves)
+					.map(([_, piece]) => piece?.piece.possibleAttacks)
 					.flat();
 
 				if (!opponentCanAttackOurChecker.includes(finalPosition)) {
-					// TODO: Check if opponent can stand in checker routes to king
-					return true;
+					const attackerRoutes = helpers.getMoveRoute(finalPosition, enemyKingPosition);
+					const enemyDefender = Object.entries(tempBoard).filter(
+						([_, boardPiece]) =>
+							boardPiece!.player !== player &&
+							boardPiece!.piece.possibleMoves.filter((pm) => attackerRoutes.includes(pm)).length > 0
+					);
+
+					if (enemyDefender.length === 0) return true;
 				}
 			}
 		}
@@ -670,18 +800,57 @@ const helpers = {
 		for (const position in board) {
 			const boardPosition = board[position];
 			if (!boardPosition) continue;
-			tempBoard[position] = {
-				id: boardPosition.id,
-				piece: {
-					...boardPosition.piece,
-					possibleMoves: helpers.validPieceMoves(board, {
-						piece: boardPosition.piece,
-						player: boardPosition.player,
-						startPosition: position
-					})
-				},
-				player: boardPosition.player
-			};
+
+			const possibleMoves = helpers.validPieceMoves(board, {
+				piece: boardPosition.piece,
+				player: boardPosition.player,
+				startPosition: position
+			});
+			if (boardPosition.piece.name === 'pawn') {
+				const [vertical, horizontal] = position.split('_').map(Number);
+				const possibleAttacks =
+					boardPosition.player === PLAYER_WHITE
+						? [`${vertical + 1}_${horizontal - 1}`, `${vertical + 1}_${horizontal + 1}`]
+						: [`${vertical - 1}_${horizontal - 1}`, `${vertical - 1}_${horizontal + 1}`];
+				tempBoard[position] = {
+					id: boardPosition.id,
+					piece: {
+						...boardPosition.piece,
+						possibleMoves: possibleMoves,
+						possibleAttacks: possibleAttacks
+					},
+					player: boardPosition.player
+				};
+			} else {
+				const possibleAttacks = possibleMoves;
+				// if (boardPosition.piece.name === 'king') {
+				// 	const [vertical, horizontal] = position.split('_').map(Number);
+				// 	const attackOffsets = [-1, 0, 1]; // Possible offsets for attacks
+
+				// 	possibleAttacks = [];
+
+				// 	for (const vOffset of attackOffsets) {
+				// 		for (const hOffset of attackOffsets) {
+				// 			if (vOffset === 0 && hOffset === 0) {
+				// 				continue; // Skip the current position
+				// 			}
+
+				// 			const attackPosition = `${vertical + vOffset}_${horizontal + hOffset}`;
+				// 			possibleAttacks.push(attackPosition);
+				// 		}
+				// 	}
+				// }
+
+				tempBoard[position] = {
+					id: boardPosition.id,
+					piece: {
+						...boardPosition.piece,
+						possibleMoves: possibleMoves,
+						possibleAttacks: possibleAttacks
+					},
+					player: boardPosition.player
+				};
+			}
 		}
 		return tempBoard;
 	},
@@ -738,6 +907,79 @@ const helpers = {
 			}
 		}
 		return false;
+	},
+	getMoveRoute: (startPosition: ChessPosition, finalPosition: ChessPosition) => {
+		const [startVertical, startHorizontal] = startPosition.split('_').map(Number);
+		const [finalVertical, finalHorizontal] = finalPosition.split('_').map(Number);
+		const routes = [];
+
+		if (startVertical === finalVertical) {
+			if (startHorizontal < finalHorizontal) {
+				// Vertical Move - Top
+				for (let i = startHorizontal + 1; i < finalHorizontal; i++) {
+					routes.push(`${startVertical}_${i}`);
+				}
+			} else {
+				// Vertical Move - Bottom
+				for (let i = startHorizontal - 1; i > finalHorizontal; i--) {
+					routes.push(`${startVertical}_${i}`);
+				}
+			}
+		}
+
+		if (startHorizontal === finalHorizontal) {
+			if (startVertical < finalVertical) {
+				// Horizontal Move - Right
+				for (let i = startVertical + 1; i < finalVertical; i++) {
+					routes.push(`${i}_${startHorizontal}`);
+				}
+			} else {
+				// Horizontal Move - Left
+				for (let i = startVertical - 1; i > finalVertical; i--) {
+					routes.push(`${i}_${startHorizontal}`);
+				}
+			}
+		}
+
+		const verticalDistance = Math.abs(finalVertical - startVertical);
+		const horizontalDistance = Math.abs(finalHorizontal - startHorizontal);
+
+		if (verticalDistance === horizontalDistance) {
+			if (startVertical < finalVertical) {
+				if (startHorizontal < finalHorizontal) {
+					// Diagonal Move - Top Right
+					let h = startHorizontal + 1;
+					for (let v = startVertical + 1; v < finalVertical; v++) {
+						routes.push(`${v}_${h}`);
+						h++;
+					}
+				} else {
+					// Diagonal Move - Top Left
+					let h = startHorizontal - 1;
+					for (let v = startVertical + 1; v < finalVertical; v++) {
+						routes.push(`${v}_${h}`);
+						h--;
+					}
+				}
+			} else {
+				if (startHorizontal < finalHorizontal) {
+					// Diagonal Move - Bottom Right
+					let h = startHorizontal + 1;
+					for (let v = startVertical - 1; v > finalVertical; v--) {
+						routes.push(`${v}_${h}`);
+						h++;
+					}
+				} else {
+					// Diagonal Move - Bottom Left');
+					let h = startHorizontal - 1;
+					for (let v = startVertical - 1; v > finalVertical; v--) {
+						routes.push(`${v}_${h}`);
+						h--;
+					}
+				}
+			}
+		}
+		return routes;
 	}
 };
 

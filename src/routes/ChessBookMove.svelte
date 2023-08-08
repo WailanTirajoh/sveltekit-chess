@@ -2,7 +2,7 @@
 	import { createEventDispatcher } from 'svelte';
 
 	const dispatch = createEventDispatcher();
-	export let boardMove: string = '2_5,4_5|7_5,5_5|1_6,4_3|8_2,6_3|1_4,3_6|6_3,4_4';
+	export let boardMove: string = '';
 
 	function viewReplay() {
 		dispatch('viewReplay', boardMove);

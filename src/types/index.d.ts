@@ -12,6 +12,7 @@ declare global {
 		icon: string;
 		rule: (board: Board, piecePosition: PieceMove) => boolean;
 		possibleMoves: Array<ChessPosition>;
+		possibleAttacks: Array<ChessPosition>;
 	}
 
 	interface PlayerPiece {

@@ -13,6 +13,8 @@
 		helpers as chessHelper
 	} from '$lib/chess/core';
 
+	const INITIAL_TIME = 60;
+
 	// Reactive Data
 	let activePlayer: Player = PLAYER_WHITE;
 	let activePiece: ActivePiece | null = null;
@@ -147,9 +149,11 @@
 		moveHistories = [];
 		activePiece = null;
 		timeLeft = {
-			'1': 60,
-			'2': 60
+			'1': INITIAL_TIME,
+			'2': INITIAL_TIME
 		};
+		winner.player = null;
+		winner.type = null;
 	}
 
 	async function onViewReplay(replayHistory: string) {
@@ -169,12 +173,12 @@
 			if (startPosition) {
 				setActivePiece(board[startPosition]!, startPosition);
 			}
-			await new Promise((resolve) => setTimeout(resolve, 1000));
+			await new Promise((resolve) => setTimeout(resolve, 1));
 			if (!finalPosition) continue;
 			if (activePiece) {
 				movePiece(activePiece, activePiece.position, finalPosition);
 			}
-			await new Promise((resolve) => setTimeout(resolve, 1000));
+			await new Promise((resolve) => setTimeout(resolve, 1));
 		}
 	}
 
@@ -215,50 +219,57 @@
 <div
 	class="grid grid-cols-1 lg:grid-cols-2 justify-center h-full gap-8 p-4 duration-100 max-w-6xl mx-auto"
 >
-	<div class="relative w-full flex flex-col rounded overflow-hidden">
-		<ChessTime class="rounded-t" timeLeft={timeLeft[2]} initialTime={60} player={PLAYER_BLACK} />
-		<ChessBoard
-			on:cellClick={(event) => {
-				onCellClick(event.detail.position);
-			}}
-			{activePlayer}
-			{activePiece}
-			{board}
-			rotateable={boardRotateable}
-		>
-			<div slot="cell" let:position>
-				{@const piece = board[position]}
-				{#if activePiece?.piece.possibleMoves.includes(position) && activePiece.player !== piece?.player}
-					<div
-						class="
+	<div class="flex flex-col gap-2">
+		<div class="relative w-full flex flex-col rounded overflow-hidden">
+			<ChessTime
+				class="rounded-t"
+				timeLeft={timeLeft[2]}
+				initialTime={INITIAL_TIME}
+				player={PLAYER_BLACK}
+			/>
+			<ChessBoard
+				on:cellClick={(event) => {
+					onCellClick(event.detail.position);
+				}}
+				{activePlayer}
+				{activePiece}
+				{board}
+				rotateable={boardRotateable}
+			>
+				<div slot="cell" let:position>
+					{@const piece = board[position]}
+					{#if activePiece?.piece.possibleMoves.includes(position) && activePiece.player !== piece?.player}
+						<div
+							class="
 								w-4 h-4 rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
 								{piece !== undefined ? '' : 'bg-gray-900 bg-opacity-20'}
 							"
-					>
-						{#if piece !== undefined}
-							<Icon
-								icon="mdi:sword"
-								class="
+						>
+							{#if piece !== undefined}
+								<Icon
+									icon="mdi:sword"
+									class="
 										!w-6 !h-6 md:!w-8 md:!h-8 duration-300 text-red-400 animate-bounce pt-2
 										{activePlayer === PLAYER_BLACK ? 'rotate-180' : ''}
 									"
-							/>
-						{/if}
-					</div>
-				{/if}
-			</div>
-		</ChessBoard>
-		<ChessTime timeLeft={timeLeft[1]} initialTime={60} player={PLAYER_WHITE} />
+								/>
+							{/if}
+						</div>
+					{/if}
+				</div>
+			</ChessBoard>
+			<ChessTime timeLeft={timeLeft[1]} initialTime={INITIAL_TIME} player={PLAYER_WHITE} />
+		</div>
+		<div class="text-white text-center text-2xl font-bold">
+			{#if winner.player}
+				{winner.player === PLAYER_BLACK ? 'Black' : 'White'} Win! {winner.type}
+			{:else}
+				{activePlayer === PLAYER_BLACK ? 'Black' : 'White'} to move
+			{/if}
+		</div>
 	</div>
 	<div class="grid gap-2">
 		<ChessMoveHistory moves={moveHistories} />
 		<ChessBookMove on:viewReplay={(event) => onViewReplay(event.detail)} />
 	</div>
-</div>
-<div class="text-white text-center text-2xl font-bold">
-	{#if winner.player}
-		{winner.player === PLAYER_BLACK ? 'Black' : 'White'} Win! {winner.type}
-	{:else}
-		{activePlayer === PLAYER_BLACK ? 'Black' : 'White'} to move
-	{/if}
 </div>
