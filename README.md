@@ -16,7 +16,7 @@ Simple Chess built with SvelteKit.
   - [ ] Pawn
     - [x] Basic Move 
     - [ ] En Passant
-    - [ ] Promotion
+    - [x] Promotion
 - [x] Replay & Move History
 - [x] Game Time
 - [ ] Game Over

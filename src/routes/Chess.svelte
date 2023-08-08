@@ -12,6 +12,8 @@
 		PLAYER_WHITE,
 		helpers as chessHelper
 	} from '$lib/chess/core';
+	import { uuidv4 } from '$lib/utils/uuid';
+	import Modal from './Modal.svelte';
 
 	const INITIAL_TIME = 60;
 
@@ -74,6 +76,9 @@
 		const isCastling =
 			playerPiece.piece.name === CHESS_PIECE.king.name &&
 			Math.abs(startHorizontal - finalHorizontal) === 2;
+
+		const isPromoting =
+			playerPiece.piece.name === CHESS_PIECE.pawn.name && [1, 8].includes(finalVertical);
 		if (isCastling) {
 			if (finalHorizontal - startHorizontal > 0) {
 				// Move right rook
@@ -92,6 +97,11 @@
 				// Move King
 				updateCellPosition(startPosition, finalPosition);
 			}
+		} else if (isPromoting) {
+			updateCellPosition(startPosition, finalPosition);
+
+			const newPiece = await choosePromotionPiece();
+			swapPiece(finalPosition, newPiece, playerPiece.player);
 		} else {
 			updateCellPosition(startPosition, finalPosition);
 		}
@@ -141,6 +151,14 @@
 			player: board[startPosition]!.player
 		};
 		delete board[startPosition];
+	}
+
+	function swapPiece(position: ChessPosition, piece: Piece, player: Player) {
+		board[position] = {
+			id: uuidv4(),
+			piece: piece,
+			player: player
+		};
 	}
 
 	function resetBoard() {
@@ -207,6 +225,9 @@
 	}
 	// End Time
 
+	// Modal
+	let showModalPromotion = false;
+
 	onMount(async () => {
 		board = chessHelper.generateAllPossibleMoves(board);
 	});
@@ -214,8 +235,62 @@
 	onDestroy(() => {
 		if (timeinterval) clearInterval(timeinterval);
 	});
+
+	let promotionPieceResolver: (value: Piece | PromiseLike<Piece>) => void;
+
+	function choosePromotionPiece() {
+		showModalPromotion = true;
+		return new Promise<Piece>((resolve, reject) => {
+			promotionPieceResolver = resolve;
+		});
+	}
+
+	function onChoosePromotionPiece(piece: Piece) {
+		promotionPieceResolver(piece);
+		showModalPromotion = false;
+	}
 </script>
 
+<Modal bind:showModal={showModalPromotion}>
+	<ol class="flex gap-2">
+		<li>
+			<button
+				on:click={() => {
+					onChoosePromotionPiece(CHESS_PIECE.queen);
+				}}
+			>
+				<Icon icon={CHESS_PIECE.queen.icon} class="w-20 h-20 duration-300 pt-2 text-black" />
+			</button>
+		</li>
+		<li>
+			<button
+				on:click={() => {
+					onChoosePromotionPiece(CHESS_PIECE.rook);
+				}}
+			>
+				<Icon icon={CHESS_PIECE.rook.icon} class="w-20 h-20 duration-300 pt-2 text-black" />
+			</button>
+		</li>
+		<li>
+			<button
+				on:click={() => {
+					onChoosePromotionPiece(CHESS_PIECE.bishop);
+				}}
+			>
+				<Icon icon={CHESS_PIECE.bishop.icon} class="w-20 h-20 duration-300 pt-2 text-black" />
+			</button>
+		</li>
+		<li>
+			<button
+				on:click={() => {
+					onChoosePromotionPiece(CHESS_PIECE.knight);
+				}}
+			>
+				<Icon icon={CHESS_PIECE.knight.icon} class="w-20 h-20 duration-300 pt-2 text-black" />
+			</button>
+		</li>
+	</ol>
+</Modal>
 <div
 	class="grid grid-cols-1 lg:grid-cols-2 justify-center h-full gap-8 p-4 duration-100 max-w-6xl mx-auto"
 >
