@@ -4,6 +4,12 @@ declare global {
 	type ChessPosition = string; // {vertical_num}_{horizontal_num}
 	type Board = Partial<Record<ChessPosition, PlayerPiece>>;
 	type PlayerTime = Record<Player, number>;
+	type CaputredPieces = Array<Piece>;
+
+	type PlayerInfo = Record<Player, {
+		time: number,
+		capturedPieces: CaputredPieces
+	}>
 
 	interface Piece {
 		name: PieceName;
@@ -11,6 +17,7 @@ declare global {
 		rule: (board: Board, pieceMove: PieceMove) => boolean;
 		possibleMoves: Array<ChessPosition>;
 		possibleAttacks: Array<ChessPosition>;
+		power: number;
 	}
 
 	interface PieceMove {

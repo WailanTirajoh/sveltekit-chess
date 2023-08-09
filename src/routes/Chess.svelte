@@ -11,20 +11,24 @@
 		PLAYER_BLACK,
 		PLAYER_WHITE,
 		CHESS_HELPERS,
-		INITIAL_TIME
+		INITIAL_TIME,
+		INITIAL_PLAYER_INFO
 	} from '$lib/chess/core';
 	import { uuidv4 } from '$lib/utils/uuid';
 	import Modal from './Modal.svelte';
 
-	// Reactive Data
+	// BOARD
+	let board: Board = CHESS_START_POSITION;
+	let boardRotateable = false;
+
+	// PLAYER
+	let playersInfo: PlayerInfo = INITIAL_PLAYER_INFO;
 	let activePlayer: Player = PLAYER_WHITE;
 	let activePiece: ActivePiece | null = null;
 	let winner: Winner = {
 		player: null,
 		type: null
 	};
-	let boardRotateable = false;
-	let board: Board = CHESS_START_POSITION;
 
 	function onCellClick(position: ChessPosition) {
 		if (winner.player) return;
@@ -133,6 +137,13 @@
 	}
 
 	function updateCellPosition(startPosition: ChessPosition, finalPosition: ChessPosition) {
+		const boardPiece = board[finalPosition];
+		if (boardPiece) {
+			playersInfo[activePlayer].capturedPieces = [
+				...playersInfo[activePlayer].capturedPieces,
+				boardPiece.piece
+			];
+		}
 		board[finalPosition] = {
 			id: board[startPosition]!.id,
 			piece: {
@@ -156,9 +167,17 @@
 		board = { ...CHESS_START_POSITION };
 		moveHistories = [];
 		activePiece = null;
-		timeLeft = {
-			1: INITIAL_TIME,
-			2: INITIAL_TIME
+		activePlayer = PLAYER_WHITE;
+		// playersInfo = { ...INITIAL_PLAYER_INFO };
+		playersInfo = {
+			1: {
+				capturedPieces: [],
+				time: INITIAL_TIME
+			},
+			2: {
+				capturedPieces: [],
+				time: INITIAL_TIME
+			}
 		};
 		winner.player = null;
 		winner.type = null;
@@ -191,12 +210,12 @@
 			if (startPosition) {
 				setActivePiece(board[startPosition]!, startPosition);
 			}
-			await new Promise((resolve) => setTimeout(resolve, 200));
+			await new Promise((resolve) => setTimeout(resolve, 1000));
 			if (!finalPosition) continue;
 			if (activePiece) {
 				movePiece(activePiece, activePiece.position, finalPosition);
 			}
-			await new Promise((resolve) => setTimeout(resolve, 200));
+			await new Promise((resolve) => setTimeout(resolve, 1000));
 		}
 	}
 	// End Replay
@@ -209,19 +228,15 @@
 	// End Board History
 
 	// Time
-	let timeLeft: PlayerTime = {
-		1: 60,
-		2: 60
-	};
 	let timeinterval: NodeJS.Timer;
 	function timeCountDown() {
-		if (timeLeft[activePlayer] === 0) {
+		if (playersInfo[activePlayer].time === 0) {
 			winner.player = activePlayer === PLAYER_BLACK ? PLAYER_WHITE : PLAYER_BLACK;
 			winner.type = 'On Time';
 			activePiece = null;
 			clearInterval(timeinterval);
 		} else {
-			timeLeft[activePlayer] = timeLeft[activePlayer] - 1;
+			playersInfo[activePlayer].time = playersInfo[activePlayer].time - 1;
 		}
 	}
 	// End Time
@@ -292,49 +307,76 @@
 	</ol>
 </Modal>
 <div
-	class="grid grid-cols-1 lg:grid-cols-2 justify-center h-full gap-8 p-4 duration-100 max-w-6xl mx-auto"
+	class="grid grid-cols-1 lg:grid-cols-3 justify-center h-full gap-8 p-4 duration-100 max-w-6xl mx-auto"
 >
-	<div class="flex flex-col gap-2">
+	<div class="flex flex-col gap-2 lg:col-span-2">
 		<div class="relative w-full flex flex-col rounded overflow-hidden">
 			<ChessTime
 				class="rounded-t"
-				timeLeft={timeLeft[PLAYER_BLACK]}
+				timeLeft={playersInfo[PLAYER_BLACK].time}
 				initialTime={INITIAL_TIME}
 				player={PLAYER_BLACK}
 			/>
-			<ChessBoard
-				on:cellClick={(event) => {
-					onCellClick(event.detail.position);
-				}}
-				{activePlayer}
-				{activePiece}
-				{board}
-				rotateable={boardRotateable}
-			>
-				<div slot="cell" let:position>
-					{@const piece = board[position]}
-					{#if activePiece?.piece.possibleMoves.includes(position) && activePiece.player !== piece?.player}
-						<div
-							class="
-								w-4 h-4 rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
-								{piece !== undefined ? '' : 'bg-gray-900 bg-opacity-20'}
-							"
-						>
-							{#if piece !== undefined}
-								<Icon
-									icon="mdi:sword"
-									class="
-										!w-6 !h-6 md:!w-8 md:!h-8 duration-300 text-red-400 animate-bounce pt-2
-										{activePlayer === PLAYER_BLACK ? 'rotate-180' : ''}
-									"
-								/>
-							{/if}
-						</div>
-					{/if}
+			<div class="flex justify-center bg-[#282724] p-4 px-8">
+				<div class="flex flex-wrap flex-col justify-start items-center gap-2 w-12 text-white">
+					{playersInfo[PLAYER_BLACK].capturedPieces.reduce((accumulator, currentValue) => {
+						return accumulator + currentValue.power;
+					}, 0)}
+					{#each playersInfo[PLAYER_BLACK].capturedPieces as capturedPiece}
+						<Icon
+							icon={capturedPiece.icon ?? ''}
+							class="!w-3 !h-3 !sm:w-5 !sm:h-5 md:!w-7 md:!h-7 duration-300 "
+						/>
+					{/each}
 				</div>
-			</ChessBoard>
+				<ChessBoard
+					on:cellClick={(event) => {
+						onCellClick(event.detail.position);
+					}}
+					{activePlayer}
+					{activePiece}
+					{board}
+					rotateable={boardRotateable}
+				>
+					<div slot="cell" let:position>
+						{@const piece = board[position]}
+						{#if activePiece?.piece.possibleMoves.includes(position) && activePiece.player !== piece?.player}
+							<div
+								class="
+									w-4 h-4 rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
+									{piece !== undefined ? '' : 'bg-gray-900 bg-opacity-20'}
+								"
+							>
+								{#if piece !== undefined}
+									<Icon
+										icon="mdi:sword"
+										class="
+											!w-6 !h-6 md:!w-8 md:!h-8 duration-300 text-red-400 animate-bounce pt-2
+											{activePlayer === PLAYER_BLACK ? 'rotate-180' : ''}
+										"
+									/>
+								{/if}
+							</div>
+						{/if}
+					</div>
+				</ChessBoard>
+				<div
+					class="flex flex-wrap flex-col-reverse justify-start items-center gap-2 w-12 text-black"
+				>
+					{playersInfo[PLAYER_WHITE].capturedPieces.reduce((accumulator, currentValue) => {
+						return accumulator + currentValue.power;
+					}, 0)}
+					{#each playersInfo[PLAYER_WHITE].capturedPieces as capturedPiece}
+						<Icon
+							icon={capturedPiece.icon ?? ''}
+							class="!w-3 !h-3 !sm:w-5 !sm:h-5 md:!w-7 md:!h-7 duration-300"
+						/>
+					{/each}
+				</div>
+			</div>
 			<ChessTime
-				timeLeft={timeLeft[PLAYER_WHITE]}
+				class="rounded-b"
+				timeLeft={playersInfo[PLAYER_WHITE].time}
 				initialTime={INITIAL_TIME}
 				player={PLAYER_WHITE}
 			/>

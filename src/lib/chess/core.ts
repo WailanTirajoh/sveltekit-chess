@@ -7,12 +7,24 @@ const PLAYER_BLACK: Player = 2;
 
 const INITIAL_TIME = 60;
 
+const INITIAL_PLAYER_INFO = {
+	1: {
+		capturedPieces: [],
+		time: INITIAL_TIME
+	},
+	2: {
+		capturedPieces: [],
+		time: INITIAL_TIME
+	}
+};
+
 const CHESS_PIECE: Record<PieceName, Piece> = {
 	rook: {
 		possibleMoves: [],
 		possibleAttacks: [],
 		name: 'rook',
 		icon: 'fa-solid:chess-rook',
+		power: 5,
 		rule: (board: Board, { startPosition, finalPosition, player }: PieceMove) => {
 			const [startVertical, startHorizontal] = startPosition.split('_').map(Number);
 			const [finalVertical, finalHorizontal] = finalPosition.split('_').map(Number);
@@ -91,6 +103,7 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 		possibleAttacks: [],
 		name: 'knight',
 		icon: 'fa6-solid:chess-knight',
+		power: 3,
 		rule: (board: Board, { startPosition, finalPosition }: PieceMove) => {
 			const [startVertical, startHorizontal] = startPosition.split('_').map(Number);
 			const [finalVertical, finalHorizontal] = finalPosition.split('_').map(Number);
@@ -136,6 +149,7 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 		possibleAttacks: [],
 		name: 'bishop',
 		icon: 'tabler:chess-bishop-filled',
+		power: 3,
 		rule: (board: Board, { startPosition, finalPosition, player }: PieceMove) => {
 			const [startVertical, startHorizontal] = startPosition.split('_').map(Number);
 			const [finalVertical, finalHorizontal] = finalPosition.split('_').map(Number);
@@ -180,6 +194,7 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 		possibleAttacks: [],
 		name: 'queen',
 		icon: 'fa6-solid:chess-queen',
+		power: 8,
 		rule: (board: Board, { startPosition, finalPosition, player }: PieceMove) => {
 			const [startVertical, startHorizontal] = startPosition.split('_').map(Number);
 			const [finalVertical, finalHorizontal] = finalPosition.split('_').map(Number);
@@ -259,6 +274,7 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 		possibleAttacks: [],
 		name: 'king',
 		icon: 'fa-solid:chess-king',
+		power: Infinity,
 		rule: (board: Board, { startPosition, finalPosition, player }: PieceMove) => {
 			const [startVertical, startHorizontal] = startPosition.split('_').map(Number);
 			const [finalVertical, finalHorizontal] = finalPosition.split('_').map(Number);
@@ -360,6 +376,7 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 		possibleAttacks: [],
 		name: 'pawn',
 		icon: 'fa-solid:chess-pawn',
+		power: 1,
 		rule: (board: Board, { startPosition, finalPosition, player }: PieceMove) => {
 			const [startVertical, startHorizontal] = startPosition.split('_').map(Number);
 			const [finalVertical, finalHorizontal] = finalPosition.split('_').map(Number);
@@ -966,5 +983,6 @@ export {
 	PLAYER_WHITE,
 	CHESS_PIECE,
 	CHESS_START_POSITION,
-	INITIAL_TIME
+	INITIAL_TIME,
+	INITIAL_PLAYER_INFO
 };

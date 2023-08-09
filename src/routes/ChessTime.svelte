@@ -10,12 +10,19 @@
 </script>
 
 <div
-	{...$$restProps }
+	{...$$restProps}
 	class="
-		w-full h-6 px-2 overflow-hidden duration-500
+		w-full h-6 overflow-hidden duration-500 relative {$$props.class}
 		{player === PLAYER_BLACK ? 'bg-black text-white' : 'bg-white text-black'}
 	"
 	style={barStyle}
 >
-	{timeLeft}
+	<div class="absolute left-2">
+		{timeLeft}
+	</div>
+	{#if lifetimePercent < 20}
+		<span
+			class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-900 opacity-75"
+		/>
+	{/if}
 </div>
