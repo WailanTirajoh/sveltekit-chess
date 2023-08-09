@@ -1,5 +1,8 @@
 # Simple Chess
+
+![image](https://github.com/WailanTirajoh/sveltekit-chess/assets/53980548/36da06d8-b5ed-4c05-b2dc-7ae9f340ba17)
 Simple Chess built with SvelteKit.
+
 
 ## Chess Features:
 - [ ] Piece & Move Rule
