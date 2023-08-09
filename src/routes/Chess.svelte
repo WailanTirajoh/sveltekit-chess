@@ -10,12 +10,11 @@
 		CHESS_START_POSITION,
 		PLAYER_BLACK,
 		PLAYER_WHITE,
-		helpers as chessHelper
+		CHESS_HELPERS,
+		INITIAL_TIME
 	} from '$lib/chess/core';
 	import { uuidv4 } from '$lib/utils/uuid';
 	import Modal from './Modal.svelte';
-
-	const INITIAL_TIME = 60;
 
 	// Reactive Data
 	let activePlayer: Player = PLAYER_WHITE;
@@ -41,13 +40,7 @@
 	}
 
 	function setActivePiece(piece: PlayerPiece, position: ChessPosition) {
-		activePiece = { ...piece, position: position };
-		const pieceOnPosition = board[position]!;
-		pieceOnPosition.piece.possibleMoves = chessHelper.validPieceMoves(board, {
-			piece: pieceOnPosition.piece,
-			player: pieceOnPosition.player,
-			startPosition: position
-		});
+		activePiece = { ...piece, position };
 	}
 
 	async function movePiece(
@@ -55,51 +48,47 @@
 		startPosition: ChessPosition,
 		finalPosition: ChessPosition
 	) {
-		const isValidMove = chessHelper.validateMovingPiece(board, {
+		const isValidMove = CHESS_HELPERS.validatePieceMove(board, {
 			piece: playerPiece.piece,
 			finalPosition,
 			startPosition,
 			player: playerPiece.player
 		});
+
 		if (!isValidMove) return;
 
-		const kingCanBeCapturedAfterMove = chessHelper.kingCanBeCaputuredAfterMove(board, {
+		const kingCanBeCapturedAfterMove = CHESS_HELPERS.kingCanBeCaputuredAfterMove(board, {
 			piece: playerPiece.piece,
 			startPosition,
 			finalPosition,
 			player: playerPiece.player
 		});
-		if (kingCanBeCapturedAfterMove) return false;
+
+		if (kingCanBeCapturedAfterMove) return;
 
 		const [startVertical, startHorizontal] = startPosition.split('_').map(Number);
 		const [finalVertical, finalHorizontal] = finalPosition.split('_').map(Number);
+
 		const isCastling =
 			playerPiece.piece.name === CHESS_PIECE.king.name &&
 			Math.abs(startHorizontal - finalHorizontal) === 2;
 
 		const isPromoting =
 			playerPiece.piece.name === CHESS_PIECE.pawn.name && [1, 8].includes(finalVertical);
+
 		if (isCastling) {
-			if (finalHorizontal - startHorizontal > 0) {
-				// Move right rook
-				const rookStartPosition = `${startVertical}_${finalHorizontal + 1}`;
-				const rookFinalPosition = `${startVertical}_${startHorizontal + 1}`;
-				updateCellPosition(rookStartPosition, rookFinalPosition);
-
-				// Move King
-				updateCellPosition(startPosition, finalPosition);
-			} else {
-				// Move left rook
-				const rookStartPosition = `${startVertical}_${finalHorizontal - 2}`;
-				const rookFinalPosition = `${startVertical}_${startHorizontal - 1}`;
-				updateCellPosition(rookStartPosition, rookFinalPosition);
-
-				// Move King
-				updateCellPosition(startPosition, finalPosition);
-			}
+			const rookStartPosition =
+				finalHorizontal - startHorizontal > 0
+					? `${startVertical}_${finalHorizontal + 1}`
+					: `${startVertical}_${finalHorizontal - 2}`;
+			const rookFinalPosition =
+				finalHorizontal - startHorizontal > 0
+					? `${startVertical}_${startHorizontal + 1}`
+					: `${startVertical}_${startHorizontal - 1}`;
+			updateCellPosition(rookStartPosition, rookFinalPosition);
+			updateCellPosition(startPosition, finalPosition);
 		} else if (isPromoting) {
 			updateCellPosition(startPosition, finalPosition);
-
 			const newPiece = await choosePromotionPiece();
 			swapPiece(finalPosition, newPiece, playerPiece.player);
 		} else {
@@ -117,21 +106,20 @@
 			}
 		});
 
-		board = chessHelper.generateAllPossibleMoves(board);
+		board = CHESS_HELPERS.generateAllLegalMoves(board);
 
-		const isGameOver = chessHelper.gameOver(board, {
+		const isGameOver = CHESS_HELPERS.gameOver(board, {
 			piece: playerPiece.piece,
 			startPosition,
 			finalPosition,
 			player: playerPiece.player
 		});
+
 		if (isGameOver) {
-			// Todo: Change alert with custom toast. (We learn store on that toast feature.)
-			alert('Game Over');
-			winner.player = playerPiece.player;
-			winner.type = 'Checkmate';
-			activePiece = null;
-			if (timeinterval) clearInterval(timeinterval);
+			onGameOver({
+				winnerPlayer: playerPiece.player,
+				type: 'checkmate'
+			});
 			return;
 		}
 
@@ -140,6 +128,8 @@
 
 		if (timeinterval) clearInterval(timeinterval);
 		timeinterval = setInterval(timeCountDown, 1000);
+
+		board = CHESS_HELPERS.generateAllLegalMoves(board);
 	}
 
 	function updateCellPosition(startPosition: ChessPosition, finalPosition: ChessPosition) {
@@ -167,14 +157,24 @@
 		moveHistories = [];
 		activePiece = null;
 		timeLeft = {
-			'1': INITIAL_TIME,
-			'2': INITIAL_TIME
+			1: INITIAL_TIME,
+			2: INITIAL_TIME
 		};
 		winner.player = null;
 		winner.type = null;
 	}
 
-	async function onViewReplay(replayHistory: string) {
+	function onGameOver({ winnerPlayer, type }: { winnerPlayer: Player; type: string }) {
+		alert('Game Over');
+		winner.player = winnerPlayer;
+		winner.type = type;
+		activePiece = null;
+		if (timeinterval) clearInterval(timeinterval);
+	}
+
+	// Replay
+	// TODO: Replay controls
+	async function viewReplay(replayHistory: string) {
 		resetBoard();
 
 		const allMove = replayHistory.split('|');
@@ -191,14 +191,15 @@
 			if (startPosition) {
 				setActivePiece(board[startPosition]!, startPosition);
 			}
-			await new Promise((resolve) => setTimeout(resolve, 1000));
+			await new Promise((resolve) => setTimeout(resolve, 200));
 			if (!finalPosition) continue;
 			if (activePiece) {
 				movePiece(activePiece, activePiece.position, finalPosition);
 			}
-			await new Promise((resolve) => setTimeout(resolve, 1000));
+			await new Promise((resolve) => setTimeout(resolve, 200));
 		}
 	}
+	// End Replay
 
 	// Board History
 	let moveHistories: Array<PieceMoveHistory> = [];
@@ -225,19 +226,9 @@
 	}
 	// End Time
 
-	// Modal
+	// Promotion
 	let showModalPromotion = false;
-
-	onMount(async () => {
-		board = chessHelper.generateAllPossibleMoves(board);
-	});
-
-	onDestroy(() => {
-		if (timeinterval) clearInterval(timeinterval);
-	});
-
-	let promotionPieceResolver: (value: Piece | PromiseLike<Piece>) => void;
-
+	let promotionPieceResolver: (value: Piece) => void;
 	function choosePromotionPiece() {
 		showModalPromotion = true;
 		return new Promise<Piece>((resolve, reject) => {
@@ -249,6 +240,15 @@
 		promotionPieceResolver(piece);
 		showModalPromotion = false;
 	}
+	// End Promotion
+
+	onMount(async () => {
+		board = CHESS_HELPERS.generateAllLegalMoves(board);
+	});
+
+	onDestroy(() => {
+		if (timeinterval) clearInterval(timeinterval);
+	});
 </script>
 
 <Modal bind:showModal={showModalPromotion}>
@@ -298,7 +298,7 @@
 		<div class="relative w-full flex flex-col rounded overflow-hidden">
 			<ChessTime
 				class="rounded-t"
-				timeLeft={timeLeft[2]}
+				timeLeft={timeLeft[PLAYER_BLACK]}
 				initialTime={INITIAL_TIME}
 				player={PLAYER_BLACK}
 			/>
@@ -333,7 +333,11 @@
 					{/if}
 				</div>
 			</ChessBoard>
-			<ChessTime timeLeft={timeLeft[1]} initialTime={INITIAL_TIME} player={PLAYER_WHITE} />
+			<ChessTime
+				timeLeft={timeLeft[PLAYER_WHITE]}
+				initialTime={INITIAL_TIME}
+				player={PLAYER_WHITE}
+			/>
 		</div>
 		<div class="text-white text-center text-2xl font-bold">
 			{#if winner.player}
@@ -345,6 +349,6 @@
 	</div>
 	<div class="grid gap-2">
 		<ChessMoveHistory moves={moveHistories} />
-		<ChessBookMove on:viewReplay={(event) => onViewReplay(event.detail)} />
+		<ChessBookMove on:viewReplay={(event) => viewReplay(event.detail)} />
 	</div>
 </div>

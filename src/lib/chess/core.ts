@@ -1,10 +1,12 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { uuidv4 } from '$lib/utils/uuid';
-
 const PLAYER_WHITE: Player = 1;
+
 const PLAYER_BLACK: Player = 2;
+
+const INITIAL_TIME = 60;
+
 const CHESS_PIECE: Record<PieceName, Piece> = {
 	rook: {
 		possibleMoves: [],
@@ -448,6 +450,7 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 		}
 	}
 };
+
 const CHESS_START_POSITION: Board = {
 	// White starting position
 	'1_1': {
@@ -614,8 +617,11 @@ const CHESS_START_POSITION: Board = {
 	}
 };
 
-const helpers = {
-	validateMovingPiece: (
+const CHESS_HELPERS = {
+	/**
+	 * Validate piece move.
+	 */
+	validatePieceMove: (
 		board: Board,
 		{
 			piece,
@@ -629,25 +635,19 @@ const helpers = {
 			finalPosition: ChessPosition;
 		}
 	) => {
-		// Dont do anything if its on same place
 		if (startPosition === finalPosition) return false;
 
-		// Piece cant eat his own piece xD
-		// if (player === board[finalPosition]?.player) return false;
-
-		// Stop when violating the rules
-		if (
-			!piece.rule(board, {
-				startPosition,
-				finalPosition,
-				player
-			})
-		)
-			return false;
-
-		return true;
+		return piece.rule(board, {
+			startPosition,
+			finalPosition,
+			player
+		});
 	},
-	validPieceMoves: (
+
+	/**
+	 * Generate piece legal moves.
+	 */
+	legalMoves: (
 		board: Board,
 		{
 			piece,
@@ -665,7 +665,7 @@ const helpers = {
 		for (let vertical = 1; vertical <= 8; vertical++) {
 			for (let horizontal = 1; horizontal <= 8; horizontal++) {
 				const finalPosition = `${vertical}_${horizontal}`;
-				const isValidMove = helpers.validateMovingPiece(board, {
+				const isValidMove = CHESS_HELPERS.validatePieceMove(board, {
 					piece,
 					startPosition,
 					finalPosition,
@@ -679,7 +679,11 @@ const helpers = {
 
 		return validMoves;
 	},
-	validAttackPieceMoves: (
+
+	/**
+	 * Generate piece legal attack moves.
+	 */
+	legalAttackMoves: (
 		board: Board,
 		{
 			piece,
@@ -703,27 +707,8 @@ const helpers = {
 							: [`${vertical - 1}_${horizontal - 1}`, `${vertical - 1}_${horizontal + 1}`];
 					return possibleAttacks;
 				} else {
-					// let possibleAttacks = [];
-					// if (piece.name === 'king') {
-					// 	const attackOffsets = [-1, 0, 1]; // Possible offsets for attacks
-
-					// 	possibleAttacks = [];
-
-					// 	for (const vOffset of attackOffsets) {
-					// 		for (const hOffset of attackOffsets) {
-					// 			if (vOffset === 0 && hOffset === 0) {
-					// 				continue; // Skip the current position
-					// 			}
-
-					// 			const attackPosition = `${vertical + vOffset}_${horizontal + hOffset}`;
-					// 			possibleAttacks.push(attackPosition);
-					// 		}
-					// 	}
-					// 	return possibleAttacks;
-					// }
-
 					const finalPosition = `${vertical}_${horizontal}`;
-					const isValidMove = helpers.validateMovingPiece(board, {
+					const isValidMove = CHESS_HELPERS.validatePieceMove(board, {
 						piece,
 						startPosition,
 						finalPosition,
@@ -738,6 +723,11 @@ const helpers = {
 
 		return validMoves;
 	},
+
+	/**
+	 * Check whether its a checkmate / stalemate
+	 * TODO: Stalemate
+	 */
 	gameOver: (
 		board: Board,
 		{
@@ -747,43 +737,38 @@ const helpers = {
 			player
 		}: { piece: Piece; startPosition: ChessPosition; finalPosition: ChessPosition; player: Player }
 	) => {
-		let tempBoard = { ...board };
-		const enemyKingPosition = Object.entries(tempBoard).find(
+		const enemyKingPosition = Object.entries(board).find(
 			([_, boardPiece]) => boardPiece?.player !== player && boardPiece?.piece.name === 'king'
 		)?.[0];
 
 		if (!enemyKingPosition) return true;
 
-		const pieceAllValidMove = helpers.validAttackPieceMoves(tempBoard, {
+		const allyPossibleAttack = CHESS_HELPERS.legalAttackMoves(board, {
 			piece,
 			startPosition: finalPosition,
 			player: player
 		});
 
-		if (pieceAllValidMove.includes(enemyKingPosition)) {
-			const enemyKing = tempBoard[enemyKingPosition];
-			if (!enemyKing) return false;
-			const enemyKingPossibleMove = helpers
-				.validPieceMoves(tempBoard, {
-					piece: enemyKing.piece,
-					player: enemyKing.player,
-					startPosition: enemyKingPosition
-				})
-				.filter((kingPosibleMove) => !pieceAllValidMove.includes(kingPosibleMove));
+		if (allyPossibleAttack.includes(enemyKingPosition)) {
+			const enemyKing = board[enemyKingPosition]!;
+
+			const enemyKingPossibleMove = CHESS_HELPERS.legalMoves(board, {
+				piece: enemyKing.piece,
+				player: enemyKing.player,
+				startPosition: enemyKingPosition
+			}).filter((kingPosibleMove) => !allyPossibleAttack.includes(kingPosibleMove));
 
 			if (enemyKingPossibleMove.length === 0) {
-				tempBoard = helpers.generateAllPossibleMoves(tempBoard);
+				board = CHESS_HELPERS.generateAllLegalMoves(board);
 				const opponentCanAttackOurChecker = Object.entries(
-					Object.fromEntries(
-						Object.entries(tempBoard).filter(([_, value]) => value?.player !== player)
-					)
+					Object.fromEntries(Object.entries(board).filter(([_, value]) => value?.player !== player))
 				)
 					.map(([_, piece]) => piece?.piece.possibleAttacks)
 					.flat();
 
 				if (!opponentCanAttackOurChecker.includes(finalPosition)) {
-					const attackerRoutes = helpers.getMoveRoute(finalPosition, enemyKingPosition);
-					const enemyDefender = Object.entries(tempBoard).filter(
+					const attackerRoutes = CHESS_HELPERS.generateMoveRoutes(finalPosition, enemyKingPosition);
+					const enemyDefender = Object.entries(board).filter(
 						([_, boardPiece]) =>
 							boardPiece!.player !== player &&
 							boardPiece!.piece.possibleMoves.filter((pm) => attackerRoutes.includes(pm)).length > 0
@@ -795,17 +780,22 @@ const helpers = {
 		}
 		return false;
 	},
-	generateAllPossibleMoves: (board: Board) => {
+
+	/**
+	 * Generate all piece legal moves & attack move.
+	 */
+	generateAllLegalMoves: (board: Board) => {
 		const tempBoard: Board = {};
 		for (const position in board) {
 			const boardPosition = board[position];
 			if (!boardPosition) continue;
 
-			const possibleMoves = helpers.validPieceMoves(board, {
+			const possibleMoves = CHESS_HELPERS.legalMoves(board, {
 				piece: boardPosition.piece,
 				player: boardPosition.player,
 				startPosition: position
 			});
+
 			if (boardPosition.piece.name === 'pawn') {
 				const [vertical, horizontal] = position.split('_').map(Number);
 				const possibleAttacks =
@@ -823,24 +813,6 @@ const helpers = {
 				};
 			} else {
 				const possibleAttacks = possibleMoves;
-				// if (boardPosition.piece.name === 'king') {
-				// 	const [vertical, horizontal] = position.split('_').map(Number);
-				// 	const attackOffsets = [-1, 0, 1]; // Possible offsets for attacks
-
-				// 	possibleAttacks = [];
-
-				// 	for (const vOffset of attackOffsets) {
-				// 		for (const hOffset of attackOffsets) {
-				// 			if (vOffset === 0 && hOffset === 0) {
-				// 				continue; // Skip the current position
-				// 			}
-
-				// 			const attackPosition = `${vertical + vOffset}_${horizontal + hOffset}`;
-				// 			possibleAttacks.push(attackPosition);
-				// 		}
-				// 	}
-				// }
-
 				tempBoard[position] = {
 					id: boardPosition.id,
 					piece: {
@@ -854,61 +826,11 @@ const helpers = {
 		}
 		return tempBoard;
 	},
-	generateMissingId: (board: Board) => {
-		const tempBoard: Board = {};
-		for (const position in board) {
-			const boardPosition = board[position];
-			if (!boardPosition) continue;
-			tempBoard[position] = {
-				...boardPosition,
-				id: boardPosition.id ?? uuidv4()
-			};
-		}
-		return tempBoard;
-	},
-	kingCanBeCaputuredAfterMove: (
-		board: Board,
-		{
-			piece,
-			startPosition,
-			finalPosition,
-			player
-		}: { piece: Piece; finalPosition: ChessPosition; startPosition: ChessPosition; player: Player }
-	) => {
-		let tempBoard = { ...board };
-		if (!helpers.validateMovingPiece(board, { piece, finalPosition, startPosition, player }))
-			return;
 
-		// Update board position
-		tempBoard[finalPosition] = {
-			id: board[startPosition]!.id,
-			piece: piece,
-			player: player
-		};
-
-		delete tempBoard[startPosition];
-
-		tempBoard = helpers.generateAllPossibleMoves(tempBoard);
-
-		const oponentPieceAvailableMove = Object.entries(
-			Object.fromEntries(Object.entries(tempBoard).filter(([_, value]) => value?.player !== player))
-		)
-			.map(([_, piece]) => piece?.piece.possibleMoves)
-			.flat();
-
-		const ourKingPosition =
-			Object.entries(tempBoard).find(
-				([_, boardPiece]) => boardPiece?.player === player && boardPiece?.piece.name === 'king'
-			)?.[0] ?? null;
-
-		if (ourKingPosition) {
-			if (oponentPieceAvailableMove.includes(ourKingPosition)) {
-				return true;
-			}
-		}
-		return false;
-	},
-	getMoveRoute: (startPosition: ChessPosition, finalPosition: ChessPosition) => {
+	/**
+	 * Generate move routes from start position to final position.
+	 */
+	generateMoveRoutes: (startPosition: ChessPosition, finalPosition: ChessPosition) => {
 		const [startVertical, startHorizontal] = startPosition.split('_').map(Number);
 		const [finalVertical, finalHorizontal] = finalPosition.split('_').map(Number);
 		const routes = [];
@@ -980,7 +902,69 @@ const helpers = {
 			}
 		}
 		return routes;
+	},
+
+	/**
+	 * Prevent move if king can be captured after the move happens.
+	 */
+	kingCanBeCaputuredAfterMove: (
+		board: Board,
+		{
+			piece,
+			startPosition,
+			finalPosition,
+			player
+		}: { piece: Piece; finalPosition: ChessPosition; startPosition: ChessPosition; player: Player }
+	) => {
+		let tempBoard = cloneBoard(board);
+		const isValidMove = CHESS_HELPERS.validatePieceMove(tempBoard, {
+			piece,
+			finalPosition,
+			startPosition,
+			player
+		});
+		if (!isValidMove) return false;
+
+		// Update board position
+		tempBoard[finalPosition] = {
+			id: tempBoard[startPosition]!.id,
+			piece: piece,
+			player: player
+		};
+
+		delete tempBoard[startPosition];
+
+		tempBoard = CHESS_HELPERS.generateAllLegalMoves(tempBoard);
+
+		const oponentPieceAvailableMove = Object.entries(
+			Object.fromEntries(Object.entries(tempBoard).filter(([_, value]) => value?.player !== player))
+		)
+			.map(([_, piece]) => piece?.piece.possibleMoves)
+			.flat();
+
+		const ourKingPosition =
+			Object.entries(tempBoard).find(
+				([_, boardPiece]) => boardPiece?.player === player && boardPiece?.piece.name === 'king'
+			)?.[0] ?? null;
+
+		if (ourKingPosition) {
+			if (oponentPieceAvailableMove.includes(ourKingPosition)) {
+				return true;
+			}
+		}
+		return false;
 	}
 };
 
-export { helpers, PLAYER_BLACK, PLAYER_WHITE, CHESS_PIECE, CHESS_START_POSITION };
+function cloneBoard(board: Board) {
+	return { ...board };
+}
+
+export {
+	CHESS_HELPERS,
+	PLAYER_BLACK,
+	PLAYER_WHITE,
+	CHESS_PIECE,
+	CHESS_START_POSITION,
+	INITIAL_TIME
+};

@@ -1,18 +1,22 @@
 declare global {
 	type Player = 1 | 2;
+	type PieceName = 'rook' | 'knight' | 'bishop' | 'queen' | 'king' | 'pawn';
+	type ChessPosition = string; // {vertical_num}_{horizontal_num}
+	type Board = Partial<Record<ChessPosition, PlayerPiece>>;
+	type PlayerTime = Record<Player, number>;
 
-	interface PieceMove {
-		startPosition: string;
-		finalPosition: string;
-		player: Player;
-	}
-	// We will create rule interface latter when we get into this (Should be after drag & drop)
 	interface Piece {
 		name: PieceName;
 		icon: string;
-		rule: (board: Board, piecePosition: PieceMove) => boolean;
+		rule: (board: Board, pieceMove: PieceMove) => boolean;
 		possibleMoves: Array<ChessPosition>;
 		possibleAttacks: Array<ChessPosition>;
+	}
+
+	interface PieceMove {
+		startPosition: ChessPosition;
+		finalPosition: ChessPosition;
+		player: Player;
 	}
 
 	interface PlayerPiece {
@@ -20,15 +24,6 @@ declare global {
 		player: Player;
 		piece: Piece;
 	}
-
-	type PieceName = 'rook' | 'knight' | 'bishop' | 'queen' | 'king' | 'pawn';
-
-	/**
-	 * {num}_{num}
-	 * row_col
-	 */
-	type ChessPosition = string;
-	type Board = Partial<Record<ChessPosition, PlayerPiece>>;
 
 	interface ActivePiece extends PlayerPiece {
 		position: ChessPosition;
@@ -38,12 +33,10 @@ declare global {
 		position: ChessPosition;
 	}
 
-	type PieceMoveHistory = {
+	interface PieceMoveHistory {
 		startPosition: PlayerPieceMove;
 		endPosition: PlayerPieceMove;
-	};
-
-	type PlayerTime = Record<Player, number>;
+	}
 
 	interface Winner {
 		player: Player | null;
