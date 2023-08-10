@@ -22,6 +22,7 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 	rook: {
 		possibleMoves: [],
 		possibleAttacks: [],
+		moveHistory: [],
 		name: 'rook',
 		icon: 'fa-solid:chess-rook',
 		power: 5,
@@ -101,6 +102,7 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 	knight: {
 		possibleMoves: [],
 		possibleAttacks: [],
+		moveHistory: [],
 		name: 'knight',
 		icon: 'fa6-solid:chess-knight',
 		power: 3,
@@ -147,6 +149,7 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 	bishop: {
 		possibleMoves: [],
 		possibleAttacks: [],
+		moveHistory: [],
 		name: 'bishop',
 		icon: 'tabler:chess-bishop-filled',
 		power: 3,
@@ -192,6 +195,7 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 	queen: {
 		possibleMoves: [],
 		possibleAttacks: [],
+		moveHistory: [],
 		name: 'queen',
 		icon: 'fa6-solid:chess-queen',
 		power: 8,
@@ -272,6 +276,7 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 	king: {
 		possibleMoves: [],
 		possibleAttacks: [],
+		moveHistory: [],
 		name: 'king',
 		icon: 'fa-solid:chess-king',
 		power: Infinity,
@@ -286,40 +291,65 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 				finalVertical: number,
 				finalHorizontal: number
 			) => {
-				// TODO: Prevent castling if king has move history. TODO: Inject move history into this. (optional)
-				// const hasMoveHistory = moveHistory.find(
-				// 	(move) => move.player === player && move.piece.name === CHESS_PIECE.king.name
-				// );
+				const king = board[startPosition]!;
 
-				// if (!hasMoveHistory) {
+				// Prevent castling when king has move history
+				if (king.piece.moveHistory.length > 0) return false;
+
+				const enemyPossibleAttacks = Object.entries(
+					Object.fromEntries(Object.entries(board).filter(([_, piece]) => piece?.player !== player))
+				)
+					.map(([_, piece]) => piece?.piece.possibleAttacks)
+					.flat();
+
+				if (enemyPossibleAttacks.includes(startPosition)) return false;
+
+				const leftRookPosition = player === PLAYER_WHITE ? '1_1' : '8_1';
+				const rightRookPosition = player === PLAYER_WHITE ? '1_8' : '8_8';
+				const leftRook = board[leftRookPosition];
+				const rightRook = board[rightRookPosition];
+
 				if (
-					(player === 1 && startVertical === 1 && startHorizontal === 5) ||
-					(player !== 1 && startVertical === 8 && startHorizontal === 5)
+					(player === PLAYER_WHITE && startVertical === 1 && startHorizontal === 5) ||
+					(player === PLAYER_BLACK && startVertical === 8 && startHorizontal === 5)
 				) {
-					const leftRookPosition = player === PLAYER_WHITE ? '1_1' : '8_1';
-					const rightRookPosition = player === PLAYER_WHITE ? '1_8' : '8_8';
-					const leftRook = board[leftRookPosition];
-					const rightRook = board[rightRookPosition];
+					const isCastlingLeft = finalHorizontal === 3;
+					const isCastlingRight = finalHorizontal === 7;
 
+					// Prevent castling when rook has move history
+					if (isCastlingLeft && leftRook && leftRook.piece.moveHistory.length > 0) return false;
+					if (isCastlingRight && rightRook && rightRook.piece.moveHistory.length > 0) return false;
+
+					// TODO: Reduce this cognitive complexity.
+					// Prevent castling when the rook position isn't ally rook.
 					if (
 						(leftRook?.piece.name === CHESS_PIECE.rook.name &&
-							finalHorizontal === 3 &&
+							isCastlingLeft &&
 							finalVertical === startVertical &&
 							leftRook?.player === player) ||
 						(rightRook?.piece.name === CHESS_PIECE.rook.name &&
-							finalHorizontal === 7 &&
+							isCastlingRight &&
 							finalVertical === startVertical &&
 							rightRook?.player === player)
 					) {
-						if (finalHorizontal === 7 && !board[`${finalVertical}_6`]) {
+						if (isCastlingRight && !board[`${finalVertical}_6`]) {
+							if (
+								enemyPossibleAttacks.includes(`${finalVertical}_6`) ||
+								enemyPossibleAttacks.includes(`${finalVertical}_7`)
+							)
+								return false;
 							return true;
 						}
-						if (finalHorizontal === 3 && !board[`${finalVertical}_4`]) {
+						if (isCastlingLeft && !board[`${finalVertical}_4`]) {
+							if (
+								enemyPossibleAttacks.includes(`${finalVertical}_3`) ||
+								enemyPossibleAttacks.includes(`${finalVertical}_4`)
+							)
+								return false;
 							return true;
 						}
 					}
 				}
-				// }
 				return false;
 			};
 
@@ -374,6 +404,7 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 	pawn: {
 		possibleMoves: [],
 		possibleAttacks: [],
+		moveHistory: [],
 		name: 'pawn',
 		icon: 'fa-solid:chess-pawn',
 		power: 1,
@@ -468,7 +499,7 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 	}
 };
 
-const CHESS_START_POSITION: Board = {
+const INITIAL_BOARD_POSITION: Board = {
 	// White starting position
 	'1_1': {
 		id: 'f323344f-028a-4923-ac4a-7cd3bb86e1b2',
@@ -783,6 +814,8 @@ const CHESS_HELPERS = {
 					.map(([_, piece]) => piece?.piece.possibleAttacks)
 					.flat();
 
+				// TODO: Opponent can attack our checker but it's also defending from other checker.
+
 				if (!opponentCanAttackOurChecker.includes(finalPosition)) {
 					const attackerRoutes = CHESS_HELPERS.generateMoveRoutes(finalPosition, enemyKingPosition);
 					const enemyDefender = Object.entries(board).filter(
@@ -982,7 +1015,7 @@ export {
 	PLAYER_BLACK,
 	PLAYER_WHITE,
 	CHESS_PIECE,
-	CHESS_START_POSITION,
+	INITIAL_BOARD_POSITION,
 	INITIAL_TIME,
 	INITIAL_PLAYER_INFO
 };

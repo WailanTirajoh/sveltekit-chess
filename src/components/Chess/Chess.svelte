@@ -8,17 +8,16 @@
 	import { uuidv4 } from '$lib/utils/uuid';
 	import {
 		CHESS_PIECE,
-		CHESS_START_POSITION,
 		PLAYER_BLACK,
 		PLAYER_WHITE,
 		CHESS_HELPERS,
+		INITIAL_BOARD_POSITION,
 		INITIAL_TIME,
 		INITIAL_PLAYER_INFO
 	} from '$lib/chess/core';
-	
 
 	// BOARD
-	let board: Board = CHESS_START_POSITION;
+	let board: Board = INITIAL_BOARD_POSITION;
 	let boardRotateable = false;
 
 	// PLAYER
@@ -45,6 +44,12 @@
 
 	function setActivePiece(piece: PlayerPiece, position: ChessPosition) {
 		activePiece = { ...piece, position };
+		const pieceOnPosition = board[position]!;
+		pieceOnPosition.piece.possibleMoves = CHESS_HELPERS.legalMoves(board, {
+			piece: pieceOnPosition.piece,
+			player: pieceOnPosition.player,
+			startPosition: position
+		});
 	}
 
 	async function movePiece(
@@ -90,6 +95,7 @@
 					? `${startVertical}_${startHorizontal + 1}`
 					: `${startVertical}_${startHorizontal - 1}`;
 			updateCellPosition(rookStartPosition, rookFinalPosition);
+
 			updateCellPosition(startPosition, finalPosition);
 		} else if (isPromoting) {
 			updateCellPosition(startPosition, finalPosition);
@@ -144,6 +150,10 @@
 				boardPiece.piece
 			];
 		}
+		board[startPosition]!.piece.moveHistory = [
+			...board[startPosition]!.piece.moveHistory,
+			finalPosition
+		];
 		board[finalPosition] = {
 			id: board[startPosition]!.id,
 			piece: {
@@ -164,7 +174,7 @@
 
 	function resetBoard() {
 		if (timeinterval) clearInterval(timeinterval);
-		board = { ...CHESS_START_POSITION };
+		board = { ...INITIAL_BOARD_POSITION };
 		moveHistories = [];
 		activePiece = null;
 		activePlayer = PLAYER_WHITE;
@@ -257,7 +267,7 @@
 	}
 	// End Promotion
 
-	onMount(async () => {
+	onMount(() => {
 		board = CHESS_HELPERS.generateAllLegalMoves(board);
 	});
 
