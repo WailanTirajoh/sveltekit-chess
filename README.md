@@ -5,17 +5,17 @@ Simple Chess built with SvelteKit.
 
 
 ## Chess Features:
-- [ ] Piece & Move Rule
+- [x] Piece & Move Rule
   - [x] Rook
   - [x] Knight
   - [x] Bishop
   - [x] Queen
-  - [ ] King
+  - [x] King
     - [x] Basic Move
-    - [ ] Castling
+    - [x] Castling
       - [x] Basic Castle
-      - [ ] Prevent on check
-      - [ ] Prevent on route attacked
+      - [x] Prevent on check
+      - [x] Prevent on route attacked
   - [ ] Pawn
     - [x] Basic Move 
     - [ ] En Passant
@@ -24,7 +24,7 @@ Simple Chess built with SvelteKit.
 - [x] Game Time
 - [ ] Game Over
     - [ ] Resign
-    - [x] Checkmate
+    - [ ] Checkmate _(~Almost there)_
     - [x] Time win
     - [ ] Draw
       - [ ] Acceptance Draw offer
