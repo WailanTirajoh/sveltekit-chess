@@ -16,8 +16,8 @@
 	{:else}
 		<div class="w-full p-2 bg-[#21201d]">Board History</div>
 		<div class="grid grid-cols-2 p-2">
-			<div class="">White</div>
-			<div class="">Black</div>
+			<div>White</div>
+			<div>Black</div>
 		</div>
 		<hr class="border border-[#21201d]" />
 		<div class="grid grid-cols-2 gap-y-2 p-2 max-h-72 overflow-auto">

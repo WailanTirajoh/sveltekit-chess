@@ -2,9 +2,10 @@
 	import { onDestroy, onMount } from 'svelte';
 	import Icon from '@iconify/svelte';
 	import ChessBoard from './ChessBoard.svelte';
-	import ChessMoveHistory from './ChessMoveHistory.svelte';
 	import ChessTime from './ChessTime.svelte';
-	import ChessBookMove from './ChessBookMove.svelte';
+	import Modal from '../Base/Modal.svelte';
+
+	import { uuidv4 } from '$lib/utils/uuid';
 	import {
 		CHESS_PIECE,
 		CHESS_START_POSITION,
@@ -14,8 +15,7 @@
 		INITIAL_TIME,
 		INITIAL_PLAYER_INFO
 	} from '$lib/chess/core';
-	import { uuidv4 } from '$lib/utils/uuid';
-	import Modal from './Modal.svelte';
+	
 
 	// BOARD
 	let board: Board = CHESS_START_POSITION;
