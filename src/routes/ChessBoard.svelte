@@ -53,7 +53,7 @@
 					id={position}
 					aria-label="chess-board-cell-${position}"
 					class="
-						h-7 w-7 sm:h-10 sm:w-10 md:h-16 md:w-16 relative flex justify-center items-center transition-width duration-300 transition-border
+						w-11 h-11 sm:h-14 sm:w-14 md:h-16 md:w-16 relative flex justify-center items-center transition-width duration-300 transition-border
 						{activePiece?.position === position ? '!bg-green-600 !bg-opacity-60 ' : ''}
 						{isOdd(vertical) ? 'odd:bg-[#e9edcc] even:bg-[#779954]' : 'odd:bg-[#779954] even:bg-[#e9edcc]'} 
 					"

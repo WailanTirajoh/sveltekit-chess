@@ -306,91 +306,64 @@
 		</li>
 	</ol>
 </Modal>
-<div
-	class="grid grid-cols-1 lg:grid-cols-3 justify-center h-full gap-8 p-4 duration-100 max-w-6xl mx-auto"
->
-	<div class="flex flex-col gap-2 lg:col-span-2">
-		<div class="relative w-full flex flex-col rounded overflow-hidden">
-			<ChessTime
-				class="rounded-t"
-				timeLeft={playersInfo[PLAYER_BLACK].time}
-				initialTime={INITIAL_TIME}
-				player={PLAYER_BLACK}
-			/>
-			<div class="flex justify-center bg-[#282724] p-4 px-8">
-				<div class="flex flex-wrap flex-col justify-start items-center gap-2 w-12 text-white">
-					{playersInfo[PLAYER_BLACK].capturedPieces.reduce((accumulator, currentValue) => {
-						return accumulator + currentValue.power;
-					}, 0)}
-					{#each playersInfo[PLAYER_BLACK].capturedPieces as capturedPiece}
-						<Icon
-							icon={capturedPiece.icon ?? ''}
-							class="!w-3 !h-3 !sm:w-5 !sm:h-5 md:!w-7 md:!h-7 duration-300 "
-						/>
-					{/each}
-				</div>
-				<ChessBoard
-					on:cellClick={(event) => {
-						onCellClick(event.detail.position);
-					}}
-					{activePlayer}
-					{activePiece}
-					{board}
-					rotateable={boardRotateable}
-				>
-					<div slot="cell" let:position>
-						{@const piece = board[position]}
-						{#if activePiece?.piece.possibleMoves.includes(position) && activePiece.player !== piece?.player}
-							<div
-								class="
+<div class="relative w-full h-[100svh] flex flex-col justify-between">
+	<ChessTime
+		timeLeft={playersInfo[PLAYER_BLACK].time}
+		initialTime={INITIAL_TIME}
+		player={PLAYER_BLACK}
+	/>
+	<div class="flex flex-col gap-1 justify-center bg-[#282724] p-1 md:p-4">
+		<div class="flex flex-wrap justify-start items-center gap-2 w-full text-white">
+			{playersInfo[PLAYER_BLACK].capturedPieces.reduce((accumulator, currentValue) => {
+				return accumulator + currentValue.power;
+			}, 0)}
+			{#each playersInfo[PLAYER_BLACK].capturedPieces as capturedPiece}
+				<Icon icon={capturedPiece.icon ?? ''} class="w-4 h-4 md:!w-7 md:!h-7 duration-300 " />
+			{/each}
+		</div>
+		<ChessBoard
+			on:cellClick={(event) => {
+				onCellClick(event.detail.position);
+			}}
+			{activePlayer}
+			{activePiece}
+			{board}
+			rotateable={boardRotateable}
+		>
+			<div slot="cell" let:position>
+				{@const piece = board[position]}
+				{#if activePiece?.piece.possibleMoves.includes(position) && activePiece.player !== piece?.player}
+					<div
+						class="
 									w-4 h-4 rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
 									{piece !== undefined ? '' : 'bg-gray-900 bg-opacity-20'}
 								"
-							>
-								{#if piece !== undefined}
-									<Icon
-										icon="mdi:sword"
-										class="
+					>
+						{#if piece !== undefined}
+							<Icon
+								icon="mdi:sword"
+								class="
 											!w-6 !h-6 md:!w-8 md:!h-8 duration-300 text-red-400 animate-bounce pt-2
 											{activePlayer === PLAYER_BLACK ? 'rotate-180' : ''}
 										"
-									/>
-								{/if}
-							</div>
+							/>
 						{/if}
 					</div>
-				</ChessBoard>
-				<div
-					class="flex flex-wrap flex-col-reverse justify-start items-center gap-2 w-12 text-black"
-				>
-					{playersInfo[PLAYER_WHITE].capturedPieces.reduce((accumulator, currentValue) => {
-						return accumulator + currentValue.power;
-					}, 0)}
-					{#each playersInfo[PLAYER_WHITE].capturedPieces as capturedPiece}
-						<Icon
-							icon={capturedPiece.icon ?? ''}
-							class="!w-3 !h-3 !sm:w-5 !sm:h-5 md:!w-7 md:!h-7 duration-300"
-						/>
-					{/each}
-				</div>
+				{/if}
 			</div>
-			<ChessTime
-				class="rounded-b"
-				timeLeft={playersInfo[PLAYER_WHITE].time}
-				initialTime={INITIAL_TIME}
-				player={PLAYER_WHITE}
-			/>
-		</div>
-		<div class="text-white text-center text-2xl font-bold">
-			{#if winner.player}
-				{winner.player === PLAYER_BLACK ? 'Black' : 'White'} Win! {winner.type}
-			{:else}
-				{activePlayer === PLAYER_BLACK ? 'Black' : 'White'} to move
-			{/if}
+		</ChessBoard>
+		<div class="flex flex-row-reverse flex-wrap justify-start items-center gap-2 w-full text-black">
+			{playersInfo[PLAYER_WHITE].capturedPieces.reduce((accumulator, currentValue) => {
+				return accumulator + currentValue.power;
+			}, 0)}
+			{#each playersInfo[PLAYER_WHITE].capturedPieces as capturedPiece}
+				<Icon icon={capturedPiece.icon ?? ''} class="w-4 h-4 md:!w-7 md:!h-7 duration-300" />
+			{/each}
 		</div>
 	</div>
-	<div class="grid gap-2">
-		<ChessMoveHistory moves={moveHistories} />
-		<ChessBookMove on:viewReplay={(event) => viewReplay(event.detail)} />
-	</div>
+	<ChessTime
+		timeLeft={playersInfo[PLAYER_WHITE].time}
+		initialTime={INITIAL_TIME}
+		player={PLAYER_WHITE}
+	/>
 </div>
