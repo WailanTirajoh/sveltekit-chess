@@ -18,6 +18,7 @@ declare global {
 		possibleMoves: Array<ChessPosition>;
 		possibleAttacks: Array<ChessPosition>;
 		power: number;
+		moveHistory: Array<ChessPosition>;
 	}
 
 	interface PieceMove {
