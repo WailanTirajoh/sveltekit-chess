@@ -1,7 +1,10 @@
 # Simple Chess
+
+![image](https://github.com/WailanTirajoh/sveltekit-chess/assets/53980548/36da06d8-b5ed-4c05-b2dc-7ae9f340ba17)
 Simple Chess built with SvelteKit.
 
-## Features:
+
+## Chess Features:
 - [ ] Piece & Move Rule
   - [x] Rook
   - [x] Knight
@@ -21,16 +24,17 @@ Simple Chess built with SvelteKit.
 - [x] Game Time
 - [ ] Game Over
     - [ ] Resign
-    - [ ] Checkmate _(Almost there)_
+    - [x] Checkmate
     - [x] Time win
     - [ ] Draw
       - [ ] Acceptance Draw offer
       - [ ] Insufficient Material
       - [ ] Lose on time, but enemy insufficient material for checkmate
-- [ ] Unit Test _(TODO: findings the testcase opensource and implement it here)_
+
 
 ## After All Features:
 - [ ] Multiplayer _(TBD Tech usage for realtime move)_
+- [ ] Unit Test _(TODO: findings the testcase opensource and implement it here)_
 
 ## Bug Report:
 - Create a minimal reproduction by copy the "Move History" and open issue.
