@@ -112,6 +112,10 @@
 			swapPiece(finalPosition, newPiece, playerPiece.player);
 		} else if (isEnPassant) {
 			updateCellPosition(startPosition, finalPosition);
+			chessGame.players[chessGame.currentPlayer].capturedPieces = [
+				...chessGame.players[chessGame.currentPlayer].capturedPieces,
+				chessGame.board[`${startVertical}_${finalHorizontal}`]!.piece
+			];
 			delete chessGame.board[`${startVertical}_${finalHorizontal}`];
 		} else {
 			updateCellPosition(startPosition, finalPosition);
