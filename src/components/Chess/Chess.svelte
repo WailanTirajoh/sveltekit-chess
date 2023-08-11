@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onDestroy, onMount } from 'svelte';
+	import { createEventDispatcher, onDestroy, onMount } from 'svelte';
 	import Icon from '@iconify/svelte';
 	import ChessBoard from './ChessBoard.svelte';
 	import ChessTime from './ChessTime.svelte';
@@ -16,26 +16,24 @@
 		INITIAL_TIME,
 		INITIAL_PLAYER_INFO
 	} from '$lib/chess/core';
+	import { authStore } from '../../stores/store';
 
 	// Chess Information
-	let chessGame: ChessInfo = {
-		board: INITIAL_BOARD_POSITION,
-		moveHistory: [],
-		players: INITIAL_PLAYER_INFO,
-		currentPlayer: PLAYER_WHITE,
-		moveCount: 1
-	};
+	export let chessGame: ChessInfo;
+
+	const dispatch = createEventDispatcher();
 
 	// Game Info
-	let rotateBoard = true;
+	$: rotateBoard = chessGame.playerWhite === $authStore.data.email;
 	let activePiece: ActivePiece | null = null;
-	let winner: Winner = {
-		player: null,
-		type: null
-	};
+	$: authPlayer = chessGame.playerWhite === $authStore.data.email ? PLAYER_WHITE : PLAYER_BLACK;
 
 	function onCellClick(position: ChessPosition) {
-		if (winner.player) return;
+		// Prevent start game on no 2 players.
+		if (!chessGame.playerBlack || !chessGame.playerWhite) return;
+
+		if (chessGame.currentPlayer !== authPlayer) return;
+		if (chessGame.winner.player) return;
 
 		let pieceOnPosition = chessGame.board[position];
 		if (activePiece && (!pieceOnPosition || pieceOnPosition.player !== chessGame.currentPlayer)) {
@@ -174,6 +172,10 @@
 
 		if (timeinterval) clearInterval(timeinterval);
 		timeinterval = setInterval(timeCountDown, 1000);
+
+		dispatch('onMove', {
+			chessGame
+		});
 	}
 
 	function updateCellPosition(startPosition: ChessPosition, finalPosition: ChessPosition) {
@@ -231,16 +233,18 @@
 				time: INITIAL_TIME
 			}
 		};
-		winner.player = null;
-		winner.type = null;
+		chessGame.winner.player = null;
+		chessGame.winner.type = null;
 	}
 
 	function onGameOver({ winnerPlayer, type }: { winnerPlayer: Player; type: string }) {
-		alert('Game Over');
-		winner.player = winnerPlayer;
-		winner.type = type;
+		chessGame.winner.player = winnerPlayer;
+		chessGame.winner.type = type;
 		activePiece = null;
 		if (timeinterval) clearInterval(timeinterval);
+		dispatch('gameOver', {
+			chessGame
+		});
 	}
 
 	// Replay
@@ -283,8 +287,9 @@
 	let timeinterval: NodeJS.Timer;
 	function timeCountDown() {
 		if (chessGame.players[chessGame.currentPlayer].time === 0) {
-			winner.player = chessGame.currentPlayer === PLAYER_BLACK ? PLAYER_WHITE : PLAYER_BLACK;
-			winner.type = 'On Time';
+			chessGame.winner.player =
+				chessGame.currentPlayer === PLAYER_BLACK ? PLAYER_WHITE : PLAYER_BLACK;
+			chessGame.winner.type = 'On Time';
 			activePiece = null;
 			clearInterval(timeinterval);
 		} else {
@@ -319,111 +324,125 @@
 	});
 </script>
 
-<Modal bind:showModal={showModalPromotion}>
-	<ol class="flex gap-2">
-		<li>
-			<button
-				on:click={() => {
-					onChoosePromotionPiece(CHESS_PIECE.queen);
-				}}
-			>
-				<Icon icon={CHESS_PIECE.queen.icon} class="w-20 h-20 duration-300 pt-2 text-black" />
-			</button>
-		</li>
-		<li>
-			<button
-				on:click={() => {
-					onChoosePromotionPiece(CHESS_PIECE.rook);
-				}}
-			>
-				<Icon icon={CHESS_PIECE.rook.icon} class="w-20 h-20 duration-300 pt-2 text-black" />
-			</button>
-		</li>
-		<li>
-			<button
-				on:click={() => {
-					onChoosePromotionPiece(CHESS_PIECE.bishop);
-				}}
-			>
-				<Icon icon={CHESS_PIECE.bishop.icon} class="w-20 h-20 duration-300 pt-2 text-black" />
-			</button>
-		</li>
-		<li>
-			<button
-				on:click={() => {
-					onChoosePromotionPiece(CHESS_PIECE.knight);
-				}}
-			>
-				<Icon icon={CHESS_PIECE.knight.icon} class="w-20 h-20 duration-300 pt-2 text-black" />
-			</button>
-		</li>
-	</ol>
-</Modal>
-<div class="relative w-full h-[100svh] flex flex-col justify-between overflow-hidden">
-	<BaseButton
-		class="absolute top-10 right-4 rounded z-10"
-		on:click={() => {
-			rotateBoard = !rotateBoard;
-		}}
-	>
-		<Icon icon="ic:baseline-crop-rotate" />
-	</BaseButton>
-	<ChessTime
-		timeLeft={chessGame.players[PLAYER_BLACK].time}
-		initialTime={INITIAL_TIME}
-		player={PLAYER_BLACK}
-	/>
-	<div class="flex flex-col gap-1 justify-center bg-[#282724] p-1 md:p-4">
-		<div class="flex flex-wrap justify-start items-center gap-2 w-full text-white">
-			{chessGame.players[PLAYER_BLACK].capturedPieces.reduce((accumulator, piece) => {
-				return accumulator + piece.power;
-			}, 0)}
-			{#each chessGame.players[PLAYER_BLACK].capturedPieces as capturedPiece}
-				<Icon icon={capturedPiece.icon ?? ''} class="w-4 h-4 md:!w-7 md:!h-7 duration-300 " />
-			{/each}
-		</div>
-		<ChessBoard
-			on:cellClick={(event) => {
-				onCellClick(event.detail.position);
+{#if chessGame}
+	<Modal bind:showModal={showModalPromotion}>
+		<ol class="flex gap-2">
+			<li>
+				<button
+					on:click={() => {
+						onChoosePromotionPiece(CHESS_PIECE.queen);
+					}}
+				>
+					<Icon icon={CHESS_PIECE.queen.icon} class="w-20 h-20 duration-300 pt-2 text-black" />
+				</button>
+			</li>
+			<li>
+				<button
+					on:click={() => {
+						onChoosePromotionPiece(CHESS_PIECE.rook);
+					}}
+				>
+					<Icon icon={CHESS_PIECE.rook.icon} class="w-20 h-20 duration-300 pt-2 text-black" />
+				</button>
+			</li>
+			<li>
+				<button
+					on:click={() => {
+						onChoosePromotionPiece(CHESS_PIECE.bishop);
+					}}
+				>
+					<Icon icon={CHESS_PIECE.bishop.icon} class="w-20 h-20 duration-300 pt-2 text-black" />
+				</button>
+			</li>
+			<li>
+				<button
+					on:click={() => {
+						onChoosePromotionPiece(CHESS_PIECE.knight);
+					}}
+				>
+					<Icon icon={CHESS_PIECE.knight.icon} class="w-20 h-20 duration-300 pt-2 text-black" />
+				</button>
+			</li>
+		</ol>
+	</Modal>
+	<div class="relative w-full h-full flex flex-col justify-between overflow-hidden">
+		<BaseButton
+			class="absolute top-10 right-4 rounded z-10"
+			on:click={() => {
+				rotateBoard = !rotateBoard;
 			}}
-			{activePiece}
-			board={chessGame.board}
-			rotate={rotateBoard}
 		>
-			<div slot="cell" let:position>
-				{@const piece = chessGame.board[position]}
-				{#if activePiece?.piece.possibleMoves.includes(position) && activePiece.player !== piece?.player}
-					<div
-						class="
+			<Icon icon="ic:baseline-crop-rotate" />
+		</BaseButton>
+		<ChessTime
+			timeLeft={chessGame.players[PLAYER_BLACK].time}
+			initialTime={INITIAL_TIME}
+			player={PLAYER_BLACK}
+		/>
+		<div class="flex flex-col gap-1 justify-center bg-[#282724] p-1 md:p-4">
+			<div class="flex flex-wrap justify-start items-center gap-2 w-full text-white">
+				{chessGame.players[PLAYER_BLACK].capturedPieces.reduce((accumulator, piece) => {
+					return accumulator + piece.power;
+				}, 0)}
+				{#each chessGame.players[PLAYER_BLACK].capturedPieces as capturedPiece}
+					<Icon icon={capturedPiece.icon ?? ''} class="w-4 h-4 md:!w-7 md:!h-7 duration-300 " />
+				{/each}
+			</div>
+			<ChessBoard
+				on:cellClick={(event) => {
+					onCellClick(event.detail.position);
+				}}
+				{activePiece}
+				board={chessGame.board}
+				rotate={rotateBoard}
+			>
+				<div slot="cell" let:position>
+					{@const piece = chessGame.board[position]}
+					{#if activePiece?.piece.possibleMoves.includes(position) && activePiece.player !== piece?.player}
+						<div
+							class="
 							w-4 h-4 rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
 							{piece !== undefined ? '' : 'bg-gray-900 bg-opacity-20'}
 						"
-					>
-						{#if piece !== undefined}
-							<Icon
-								icon="mdi:sword"
-								class="
+						>
+							{#if piece !== undefined}
+								<Icon
+									icon="mdi:sword"
+									class="
 									!w-6 !h-6 md:!w-8 md:!h-8 duration-300 text-red-400 animate-bounce pt-2
 									{chessGame.currentPlayer === PLAYER_BLACK ? 'rotate-180' : ''}
 								"
-							/>
-						{/if}
-					</div>
+								/>
+							{/if}
+						</div>
+					{/if}
+				</div>
+			</ChessBoard>
+			<div class="">
+				{#if authPlayer === chessGame.currentPlayer}
+					Your Turn
 				{/if}
 			</div>
-		</ChessBoard>
-		<div class="flex flex-row-reverse flex-wrap justify-start items-center gap-2 w-full text-black">
-			{chessGame.players[PLAYER_WHITE].capturedPieces.reduce((accumulator, piece) => {
-				return accumulator + piece.power;
-			}, 0)}
-			{#each chessGame.players[PLAYER_WHITE].capturedPieces as capturedPiece}
-				<Icon icon={capturedPiece.icon ?? ''} class="w-4 h-4 md:!w-7 md:!h-7 duration-300" />
-			{/each}
+			<div class="text-center">
+				{#if chessGame.winner.player}
+					{chessGame.winner.player === PLAYER_WHITE ? 'White' : 'Black'} Win {chessGame.winner.type}
+				{/if}
+			</div>
+			<div
+				class="flex flex-row-reverse flex-wrap justify-start items-center gap-2 w-full text-black"
+			>
+				{chessGame.players[PLAYER_WHITE].capturedPieces.reduce((accumulator, piece) => {
+					return accumulator + piece.power;
+				}, 0)}
+				{#each chessGame.players[PLAYER_WHITE].capturedPieces as capturedPiece}
+					<Icon icon={capturedPiece.icon ?? ''} class="w-4 h-4 md:!w-7 md:!h-7 duration-300" />
+				{/each}
+			</div>
 		</div>
+		<ChessTime
+			timeLeft={chessGame.players[PLAYER_WHITE].time}
+			initialTime={INITIAL_TIME}
+			player={PLAYER_WHITE}
+		/>
 	</div>
-	<ChessTime
-		timeLeft={chessGame.players[PLAYER_WHITE].time}
-		initialTime={INITIAL_TIME}
-		player={PLAYER_WHITE}
-	/>
-</div>
+{/if}
