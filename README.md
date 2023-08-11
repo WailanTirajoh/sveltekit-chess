@@ -16,9 +16,9 @@ Simple Chess built with SvelteKit.
       - [x] Basic Castle
       - [x] Prevent on check
       - [x] Prevent on route attacked
-  - [ ] Pawn
+  - [x] Pawn
     - [x] Basic Move 
-    - [ ] En Passant
+    - [x] En Passant
     - [x] Promotion
 - [x] Replay & Move History
 - [x] Game Time
