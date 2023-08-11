@@ -6,19 +6,22 @@ declare global {
 	type PlayerTime = Record<Player, number>;
 	type CaputredPieces = Array<Piece>;
 
-	type PlayerInfo = Record<Player, {
-		time: number,
-		capturedPieces: CaputredPieces
-	}>
+	type PlayerInfo = Record<
+		Player,
+		{
+			time: number;
+			capturedPieces: CaputredPieces;
+		}
+	>;
 
 	interface Piece {
 		name: PieceName;
 		icon: string;
-		rule: (board: Board, pieceMove: PieceMove) => boolean;
+		rule: (chess: ChessInfo, pieceMove: PieceMove) => boolean;
 		possibleMoves: Array<ChessPosition>;
 		possibleAttacks: Array<ChessPosition>;
 		power: number;
-		moveHistory: Array<ChessPosition>;
+		moveHistory: Array<PieceMoveHistory>;
 	}
 
 	interface PieceMove {
@@ -42,13 +45,22 @@ declare global {
 	}
 
 	interface PieceMoveHistory {
-		startPosition: PlayerPieceMove;
-		endPosition: PlayerPieceMove;
+		startPosition: ChessPosition;
+		finalPosition: ChessPosition;
+		moveAt: number;
 	}
 
 	interface Winner {
 		player: Player | null;
 		type: string | null;
+	}
+
+	interface ChessInfo {
+		board: Board;
+		moveHistory: Array<PieceMoveHistory>;
+		players: PlayerInfo;
+		moveCount: number;
+		currentPlayer: Player;
 	}
 }
 

@@ -16,13 +16,17 @@
 		INITIAL_PLAYER_INFO
 	} from '$lib/chess/core';
 
-	// BOARD
-	let board: Board = INITIAL_BOARD_POSITION;
-	let boardRotateable = false;
+	// Chess Information
+	let chessGame: ChessInfo = {
+		board: INITIAL_BOARD_POSITION,
+		moveHistory: [],
+		players: INITIAL_PLAYER_INFO,
+		currentPlayer: PLAYER_WHITE,
+		moveCount: 1
+	};
 
-	// PLAYER
-	let playersInfo: PlayerInfo = INITIAL_PLAYER_INFO;
-	let activePlayer: Player = PLAYER_WHITE;
+	// Game Info
+	let boardRotateable = false;
 	let activePiece: ActivePiece | null = null;
 	let winner: Winner = {
 		player: null,
@@ -32,24 +36,24 @@
 	function onCellClick(position: ChessPosition) {
 		if (winner.player) return;
 
-		let pieceOnPosition = board[position];
-		if (activePiece && (!pieceOnPosition || pieceOnPosition.player !== activePlayer)) {
+		let pieceOnPosition = chessGame.board[position];
+		if (activePiece && (!pieceOnPosition || pieceOnPosition.player !== chessGame.currentPlayer)) {
 			movePiece(activePiece, activePiece.position, position);
 		} else {
 			if (!pieceOnPosition) return;
-			if (pieceOnPosition.player !== activePlayer) return;
+			if (pieceOnPosition.player !== chessGame.currentPlayer) return;
 			setActivePiece(pieceOnPosition, position);
 		}
 	}
 
 	function setActivePiece(piece: PlayerPiece, position: ChessPosition) {
 		activePiece = { ...piece, position };
-		const pieceOnPosition = board[position]!;
-		pieceOnPosition.piece.possibleMoves = CHESS_HELPERS.legalMoves(board, {
-			piece: pieceOnPosition.piece,
-			player: pieceOnPosition.player,
-			startPosition: position
-		});
+		// const pieceOnPosition = board[position]!;
+		// pieceOnPosition.piece.possibleMoves = CHESS_HELPERS.legalMoves(board, {
+		// 	piece: pieceOnPosition.piece,
+		// 	player: pieceOnPosition.player,
+		// 	startPosition: position
+		// });
 	}
 
 	async function movePiece(
@@ -57,7 +61,7 @@
 		startPosition: ChessPosition,
 		finalPosition: ChessPosition
 	) {
-		const isValidMove = CHESS_HELPERS.validatePieceMove(board, {
+		const isValidMove = CHESS_HELPERS.validatePieceMove(chessGame, {
 			piece: playerPiece.piece,
 			finalPosition,
 			startPosition,
@@ -66,7 +70,7 @@
 
 		if (!isValidMove) return;
 
-		const kingCanBeCapturedAfterMove = CHESS_HELPERS.kingCanBeCaputuredAfterMove(board, {
+		const kingCanBeCapturedAfterMove = CHESS_HELPERS.kingCanBeCaputuredAfterMove(chessGame, {
 			piece: playerPiece.piece,
 			startPosition,
 			finalPosition,
@@ -77,6 +81,11 @@
 
 		const [startVertical, startHorizontal] = startPosition.split('_').map(Number);
 		const [finalVertical, finalHorizontal] = finalPosition.split('_').map(Number);
+
+		const isEnPassant =
+			playerPiece.piece.name === CHESS_PIECE.pawn.name &&
+			Math.abs(finalHorizontal - startHorizontal) === 1 &&
+			[3, 6].includes(finalVertical);
 
 		const isCastling =
 			playerPiece.piece.name === CHESS_PIECE.king.name &&
@@ -101,71 +110,97 @@
 			updateCellPosition(startPosition, finalPosition);
 			const newPiece = await choosePromotionPiece();
 			swapPiece(finalPosition, newPiece, playerPiece.player);
+		} else if (isEnPassant) {
+			updateCellPosition(startPosition, finalPosition);
+			delete chessGame.board[`${startVertical}_${finalHorizontal}`];
 		} else {
 			updateCellPosition(startPosition, finalPosition);
 		}
 
 		storeMoveHistory({
-			startPosition: {
-				...playerPiece,
-				position: startPosition
-			},
-			endPosition: {
-				...playerPiece,
-				position: finalPosition
-			}
+			startPosition: startPosition,
+			finalPosition: finalPosition,
+			moveAt: chessGame.moveCount
 		});
 
-		board = CHESS_HELPERS.generateAllLegalMoves(board);
+		// Regenerate all legal moves after piece move.
+		chessGame.board = CHESS_HELPERS.generateAllLegalMoves(chessGame);
 
-		const isGameOver = CHESS_HELPERS.gameOver(board, {
-			piece: playerPiece.piece,
-			startPosition,
-			finalPosition,
-			player: playerPiece.player
-		});
+		const enemyKingPosition = Object.entries(chessGame.board).find(
+			([_, boardPiece]) =>
+				boardPiece?.player !== chessGame.currentPlayer && boardPiece?.piece.name === 'king'
+		)?.[0]!;
+		let routeToCheck: Array<ChessPosition> = [];
+		if (chessGame.board[finalPosition]?.piece.possibleAttacks.includes(enemyKingPosition)) {
+			alert('check');
+			routeToCheck = [
+				...CHESS_HELPERS.generateMoveRoutes(finalPosition, enemyKingPosition),
+				finalPosition,
+				enemyKingPosition
+			];
 
-		if (isGameOver) {
-			onGameOver({
-				winnerPlayer: playerPiece.player,
-				type: 'checkmate'
+			// Regenerate all legal moves after piece move | Update the piece possible move to attack / block the kings.
+			chessGame.board = CHESS_HELPERS.generateAllLegalMoves(chessGame, {
+				checker: routeToCheck.length > 0 ? playerPiece.player : undefined,
+				checkRoutes: routeToCheck
 			});
-			return;
+
+			const isGameOver = CHESS_HELPERS.gameOver(chessGame, {
+				piece: playerPiece.piece,
+				startPosition,
+				finalPosition,
+				player: playerPiece.player
+			});
+
+			if (isGameOver) {
+				onGameOver({
+					winnerPlayer: playerPiece.player,
+					type: 'checkmate'
+				});
+				return;
+			}
 		}
 
 		activePiece = null;
-		activePlayer = activePlayer === PLAYER_WHITE ? PLAYER_BLACK : PLAYER_WHITE;
+		chessGame.currentPlayer =
+			chessGame.currentPlayer === PLAYER_WHITE ? PLAYER_BLACK : PLAYER_WHITE;
 
 		if (timeinterval) clearInterval(timeinterval);
 		timeinterval = setInterval(timeCountDown, 1000);
-
-		board = CHESS_HELPERS.generateAllLegalMoves(board);
 	}
 
 	function updateCellPosition(startPosition: ChessPosition, finalPosition: ChessPosition) {
-		const boardPiece = board[finalPosition];
+		const boardPieceStart = chessGame.board[startPosition];
+		if (!boardPieceStart) return;
+		const boardPiece = chessGame.board[finalPosition];
+
 		if (boardPiece) {
-			playersInfo[activePlayer].capturedPieces = [
-				...playersInfo[activePlayer].capturedPieces,
+			chessGame.players[chessGame.currentPlayer].capturedPieces = [
+				...chessGame.players[chessGame.currentPlayer].capturedPieces,
 				boardPiece.piece
 			];
 		}
-		board[startPosition]!.piece.moveHistory = [
-			...board[startPosition]!.piece.moveHistory,
-			finalPosition
+
+		boardPieceStart.piece.moveHistory = [
+			...boardPieceStart.piece.moveHistory,
+			{
+				finalPosition: finalPosition,
+				startPosition: startPosition,
+				moveAt: chessGame.moveHistory.length
+			}
 		];
-		board[finalPosition] = {
-			id: board[startPosition]!.id,
+		chessGame.board[finalPosition] = {
+			id: boardPieceStart.id,
 			piece: {
-				...board[startPosition]!.piece
+				...boardPieceStart.piece
 			},
-			player: board[startPosition]!.player
+			player: boardPieceStart.player
 		};
-		delete board[startPosition];
+		delete chessGame.board[startPosition];
 	}
 
 	function swapPiece(position: ChessPosition, piece: Piece, player: Player) {
-		board[position] = {
+		chessGame.board[position] = {
 			id: uuidv4(),
 			piece: piece,
 			player: player
@@ -174,12 +209,12 @@
 
 	function resetBoard() {
 		if (timeinterval) clearInterval(timeinterval);
-		board = { ...INITIAL_BOARD_POSITION };
-		moveHistories = [];
+		chessGame.board = { ...INITIAL_BOARD_POSITION };
+		chessGame.moveHistory = [];
 		activePiece = null;
-		activePlayer = PLAYER_WHITE;
+		chessGame.currentPlayer = PLAYER_WHITE;
 		// playersInfo = { ...INITIAL_PLAYER_INFO };
-		playersInfo = {
+		chessGame.players = {
 			1: {
 				capturedPieces: [],
 				time: INITIAL_TIME
@@ -218,7 +253,7 @@
 		for (const movePosition of movePositions) {
 			const { startPosition, finalPosition } = movePosition;
 			if (startPosition) {
-				setActivePiece(board[startPosition]!, startPosition);
+				setActivePiece(chessGame.board[startPosition]!, startPosition);
 			}
 			await new Promise((resolve) => setTimeout(resolve, 1000));
 			if (!finalPosition) continue;
@@ -231,22 +266,23 @@
 	// End Replay
 
 	// Board History
-	let moveHistories: Array<PieceMoveHistory> = [];
+	// let moveHistories: Array<PieceMoveHistory> = [];
 	function storeMoveHistory(pieceMoveHistory: PieceMoveHistory) {
-		moveHistories = [...moveHistories, pieceMoveHistory];
+		chessGame.moveHistory = [...chessGame.moveHistory, pieceMoveHistory];
 	}
 	// End Board History
 
 	// Time
 	let timeinterval: NodeJS.Timer;
 	function timeCountDown() {
-		if (playersInfo[activePlayer].time === 0) {
-			winner.player = activePlayer === PLAYER_BLACK ? PLAYER_WHITE : PLAYER_BLACK;
+		if (chessGame.players[chessGame.currentPlayer].time === 0) {
+			winner.player = chessGame.currentPlayer === PLAYER_BLACK ? PLAYER_WHITE : PLAYER_BLACK;
 			winner.type = 'On Time';
 			activePiece = null;
 			clearInterval(timeinterval);
 		} else {
-			playersInfo[activePlayer].time = playersInfo[activePlayer].time - 1;
+			chessGame.players[chessGame.currentPlayer].time =
+				chessGame.players[chessGame.currentPlayer].time - 1;
 		}
 	}
 	// End Time
@@ -268,7 +304,7 @@
 	// End Promotion
 
 	onMount(() => {
-		board = CHESS_HELPERS.generateAllLegalMoves(board);
+		chessGame.board = CHESS_HELPERS.generateAllLegalMoves(chessGame);
 	});
 
 	onDestroy(() => {
@@ -318,16 +354,16 @@
 </Modal>
 <div class="relative w-full h-[100svh] flex flex-col justify-between">
 	<ChessTime
-		timeLeft={playersInfo[PLAYER_BLACK].time}
+		timeLeft={chessGame.players[PLAYER_BLACK].time}
 		initialTime={INITIAL_TIME}
 		player={PLAYER_BLACK}
 	/>
 	<div class="flex flex-col gap-1 justify-center bg-[#282724] p-1 md:p-4">
 		<div class="flex flex-wrap justify-start items-center gap-2 w-full text-white">
-			{playersInfo[PLAYER_BLACK].capturedPieces.reduce((accumulator, currentValue) => {
+			{chessGame.players[PLAYER_BLACK].capturedPieces.reduce((accumulator, currentValue) => {
 				return accumulator + currentValue.power;
 			}, 0)}
-			{#each playersInfo[PLAYER_BLACK].capturedPieces as capturedPiece}
+			{#each chessGame.players[PLAYER_BLACK].capturedPieces as capturedPiece}
 				<Icon icon={capturedPiece.icon ?? ''} class="w-4 h-4 md:!w-7 md:!h-7 duration-300 " />
 			{/each}
 		</div>
@@ -335,13 +371,13 @@
 			on:cellClick={(event) => {
 				onCellClick(event.detail.position);
 			}}
-			{activePlayer}
+			activePlayer={chessGame.currentPlayer}
 			{activePiece}
-			{board}
+			board={chessGame.board}
 			rotateable={boardRotateable}
 		>
 			<div slot="cell" let:position>
-				{@const piece = board[position]}
+				{@const piece = chessGame.board[position]}
 				{#if activePiece?.piece.possibleMoves.includes(position) && activePiece.player !== piece?.player}
 					<div
 						class="
@@ -354,7 +390,7 @@
 								icon="mdi:sword"
 								class="
 											!w-6 !h-6 md:!w-8 md:!h-8 duration-300 text-red-400 animate-bounce pt-2
-											{activePlayer === PLAYER_BLACK ? 'rotate-180' : ''}
+											{chessGame.currentPlayer === PLAYER_BLACK ? 'rotate-180' : ''}
 										"
 							/>
 						{/if}
@@ -363,16 +399,16 @@
 			</div>
 		</ChessBoard>
 		<div class="flex flex-row-reverse flex-wrap justify-start items-center gap-2 w-full text-black">
-			{playersInfo[PLAYER_WHITE].capturedPieces.reduce((accumulator, currentValue) => {
+			{chessGame.players[PLAYER_WHITE].capturedPieces.reduce((accumulator, currentValue) => {
 				return accumulator + currentValue.power;
 			}, 0)}
-			{#each playersInfo[PLAYER_WHITE].capturedPieces as capturedPiece}
+			{#each chessGame.players[PLAYER_WHITE].capturedPieces as capturedPiece}
 				<Icon icon={capturedPiece.icon ?? ''} class="w-4 h-4 md:!w-7 md:!h-7 duration-300" />
 			{/each}
 		</div>
 	</div>
 	<ChessTime
-		timeLeft={playersInfo[PLAYER_WHITE].time}
+		timeLeft={chessGame.players[PLAYER_WHITE].time}
 		initialTime={INITIAL_TIME}
 		player={PLAYER_WHITE}
 	/>

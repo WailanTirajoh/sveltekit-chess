@@ -1,11 +1,13 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
+import { clone } from '$lib/utils/deepClone';
+
 const PLAYER_WHITE: Player = 1;
 
 const PLAYER_BLACK: Player = 2;
 
-const INITIAL_TIME = 60;
+const INITIAL_TIME = 600;
 
 const INITIAL_PLAYER_INFO = {
 	1: {
@@ -26,7 +28,8 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 		name: 'rook',
 		icon: 'fa-solid:chess-rook',
 		power: 5,
-		rule: (board: Board, { startPosition, finalPosition, player }: PieceMove) => {
+		rule: (chess: ChessInfo, { startPosition, finalPosition, player }: PieceMove) => {
+			const { board } = chess;
 			const [startVertical, startHorizontal] = startPosition.split('_').map(Number);
 			const [finalVertical, finalHorizontal] = finalPosition.split('_').map(Number);
 
@@ -106,7 +109,8 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 		name: 'knight',
 		icon: 'fa6-solid:chess-knight',
 		power: 3,
-		rule: (board: Board, { startPosition, finalPosition }: PieceMove) => {
+		rule: (chess: ChessInfo, { startPosition, finalPosition, player }: PieceMove) => {
+			const { board } = chess;
 			const [startVertical, startHorizontal] = startPosition.split('_').map(Number);
 			const [finalVertical, finalHorizontal] = finalPosition.split('_').map(Number);
 
@@ -153,7 +157,8 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 		name: 'bishop',
 		icon: 'tabler:chess-bishop-filled',
 		power: 3,
-		rule: (board: Board, { startPosition, finalPosition, player }: PieceMove) => {
+		rule: (chess: ChessInfo, { startPosition, finalPosition, player }: PieceMove) => {
+			const { board } = chess;
 			const [startVertical, startHorizontal] = startPosition.split('_').map(Number);
 			const [finalVertical, finalHorizontal] = finalPosition.split('_').map(Number);
 
@@ -199,7 +204,8 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 		name: 'queen',
 		icon: 'fa6-solid:chess-queen',
 		power: 8,
-		rule: (board: Board, { startPosition, finalPosition, player }: PieceMove) => {
+		rule: (chess: ChessInfo, { startPosition, finalPosition, player }: PieceMove) => {
+			const { board } = chess;
 			const [startVertical, startHorizontal] = startPosition.split('_').map(Number);
 			const [finalVertical, finalHorizontal] = finalPosition.split('_').map(Number);
 
@@ -280,7 +286,8 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 		name: 'king',
 		icon: 'fa-solid:chess-king',
 		power: Infinity,
-		rule: (board: Board, { startPosition, finalPosition, player }: PieceMove) => {
+		rule: (chess: ChessInfo, { startPosition, finalPosition, player }: PieceMove) => {
+			const { board } = chess;
 			const [startVertical, startHorizontal] = startPosition.split('_').map(Number);
 			const [finalVertical, finalHorizontal] = finalPosition.split('_').map(Number);
 
@@ -408,24 +415,24 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 		name: 'pawn',
 		icon: 'fa-solid:chess-pawn',
 		power: 1,
-		rule: (board: Board, { startPosition, finalPosition, player }: PieceMove) => {
+		rule: (chess: ChessInfo, { startPosition, finalPosition, player }: PieceMove) => {
 			const [startVertical, startHorizontal] = startPosition.split('_').map(Number);
 			const [finalVertical, finalHorizontal] = finalPosition.split('_').map(Number);
 			let enemy: PlayerPiece | null = null;
-			const finalPositionPawn = board[`${finalVertical}_${finalHorizontal}`];
+			const finalPositionPawn = chess.board[`${finalVertical}_${finalHorizontal}`];
 			if (finalPositionPawn) {
 				if (finalPositionPawn.player !== player) {
 					enemy = finalPositionPawn;
 				}
 			}
 
-			if (player === 1) {
+			if (player === PLAYER_WHITE) {
 				// Player 1 is white, can only move upward
 
 				// Check if the pawn is moving one square forward
 				if (startHorizontal === finalHorizontal && finalVertical - startVertical === 1) {
 					// Check if the destination position is empty
-					if (!board[`${finalVertical}_${finalHorizontal}`]) {
+					if (!chess.board[`${finalVertical}_${finalHorizontal}`]) {
 						return true;
 					}
 				}
@@ -438,8 +445,23 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 				) {
 					// Check if the two squares in front of the pawn are empty
 					if (
-						!board[`${startVertical + 1}_${startHorizontal}`] &&
-						!board[`${finalVertical}_${finalHorizontal}`]
+						!chess.board[`${startVertical + 1}_${startHorizontal}`] &&
+						!chess.board[`${finalVertical}_${finalHorizontal}`]
+					) {
+						return true;
+					}
+				}
+
+				// Check if the pawn can an passant the enemy.
+				if (startVertical === 5 && Math.abs(finalHorizontal - startHorizontal) === 1) {
+					const pieceOnBoard = chess.board[`${startVertical}_${finalHorizontal}`];
+					if (
+						finalVertical === 6 &&
+						pieceOnBoard &&
+						pieceOnBoard.player !== player &&
+						pieceOnBoard.piece.name === CHESS_PIECE.pawn.name &&
+						pieceOnBoard.piece.moveHistory.length === 1 &&
+						pieceOnBoard.piece.moveHistory[0].moveAt === chess.moveHistory.length - 1
 					) {
 						return true;
 					}
@@ -461,7 +483,7 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 				// Check if the pawn is moving one square forward
 				if (startHorizontal === finalHorizontal && startVertical - finalVertical === 1) {
 					// Check if the destination position is empty
-					if (!board[`${finalVertical}_${finalHorizontal}`]) {
+					if (!chess.board[`${finalVertical}_${finalHorizontal}`]) {
 						return true;
 					}
 				}
@@ -474,8 +496,23 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 				) {
 					// Check if the two squares in front of the pawn are empty
 					if (
-						!board[`${startVertical - 1}_${startHorizontal}`] &&
-						!board[`${finalVertical}_${finalHorizontal}`]
+						!chess.board[`${startVertical - 1}_${startHorizontal}`] &&
+						!chess.board[`${finalVertical}_${finalHorizontal}`]
+					) {
+						return true;
+					}
+				}
+
+				// Check if the pawn can an passant the enemy.
+				if (startVertical === 4 && Math.abs(finalHorizontal - startHorizontal) === 1) {
+					const pieceOnBoard = chess.board[`${startVertical}_${finalHorizontal}`];
+					if (
+						finalVertical === 3 &&
+						pieceOnBoard &&
+						pieceOnBoard.player !== player &&
+						pieceOnBoard.piece.name === CHESS_PIECE.pawn.name &&
+						pieceOnBoard.piece.moveHistory.length === 1 &&
+						pieceOnBoard.piece.moveHistory[0].moveAt === chess.moveHistory.length - 1
 					) {
 						return true;
 					}
@@ -670,7 +707,7 @@ const CHESS_HELPERS = {
 	 * Validate piece move.
 	 */
 	validatePieceMove: (
-		board: Board,
+		chess: ChessInfo,
 		{
 			piece,
 			player,
@@ -684,8 +721,7 @@ const CHESS_HELPERS = {
 		}
 	) => {
 		if (startPosition === finalPosition) return false;
-
-		return piece.rule(board, {
+		return piece.rule(chess, {
 			startPosition,
 			finalPosition,
 			player
@@ -696,7 +732,7 @@ const CHESS_HELPERS = {
 	 * Generate piece legal moves.
 	 */
 	legalMoves: (
-		board: Board,
+		chess: ChessInfo,
 		{
 			piece,
 			startPosition,
@@ -713,7 +749,7 @@ const CHESS_HELPERS = {
 		for (let vertical = 1; vertical <= 8; vertical++) {
 			for (let horizontal = 1; horizontal <= 8; horizontal++) {
 				const finalPosition = `${vertical}_${horizontal}`;
-				const isValidMove = CHESS_HELPERS.validatePieceMove(board, {
+				const isValidMove = CHESS_HELPERS.validatePieceMove(chess, {
 					piece,
 					startPosition,
 					finalPosition,
@@ -732,7 +768,7 @@ const CHESS_HELPERS = {
 	 * Generate piece legal attack moves.
 	 */
 	legalAttackMoves: (
-		board: Board,
+		chess: ChessInfo,
 		{
 			piece,
 			startPosition,
@@ -756,7 +792,7 @@ const CHESS_HELPERS = {
 					return possibleAttacks;
 				} else {
 					const finalPosition = `${vertical}_${horizontal}`;
-					const isValidMove = CHESS_HELPERS.validatePieceMove(board, {
+					const isValidMove = CHESS_HELPERS.validatePieceMove(chess, {
 						piece,
 						startPosition,
 						finalPosition,
@@ -777,7 +813,7 @@ const CHESS_HELPERS = {
 	 * TODO: Stalemate
 	 */
 	gameOver: (
-		board: Board,
+		chess: ChessInfo,
 		{
 			piece,
 			startPosition,
@@ -785,29 +821,30 @@ const CHESS_HELPERS = {
 			player
 		}: { piece: Piece; startPosition: ChessPosition; finalPosition: ChessPosition; player: Player }
 	) => {
+		let { board } = chess;
 		const enemyKingPosition = Object.entries(board).find(
 			([_, boardPiece]) => boardPiece?.player !== player && boardPiece?.piece.name === 'king'
 		)?.[0];
 
 		if (!enemyKingPosition) return true;
 
-		const allyPossibleAttack = CHESS_HELPERS.legalAttackMoves(board, {
-			piece,
-			startPosition: finalPosition,
-			player: player
-		});
+		const allyPossibleAttack = Object.entries(
+			Object.fromEntries(Object.entries(board).filter(([_, value]) => value?.player === player))
+		)
+			.map(([_, piece]) => piece?.piece.possibleAttacks)
+			.flat();
 
 		if (allyPossibleAttack.includes(enemyKingPosition)) {
 			const enemyKing = board[enemyKingPosition]!;
 
-			const enemyKingPossibleMove = CHESS_HELPERS.legalMoves(board, {
+			const enemyKingPossibleMove = CHESS_HELPERS.legalMoves(chess, {
 				piece: enemyKing.piece,
 				player: enemyKing.player,
 				startPosition: enemyKingPosition
 			}).filter((kingPosibleMove) => !allyPossibleAttack.includes(kingPosibleMove));
 
 			if (enemyKingPossibleMove.length === 0) {
-				board = CHESS_HELPERS.generateAllLegalMoves(board);
+				board = CHESS_HELPERS.generateAllLegalMoves(chess);
 				const opponentCanAttackOurChecker = Object.entries(
 					Object.fromEntries(Object.entries(board).filter(([_, value]) => value?.player !== player))
 				)
@@ -834,24 +871,52 @@ const CHESS_HELPERS = {
 	/**
 	 * Generate all piece legal moves & attack move.
 	 */
-	generateAllLegalMoves: (board: Board) => {
+	generateAllLegalMoves: (
+		chess: ChessInfo,
+		options: {
+			checker: Player | undefined;
+			checkRoutes: Array<ChessPosition>;
+		} = {
+			checker: undefined,
+			checkRoutes: []
+		}
+	) => {
+		const { board } = chess;
+		const { checkRoutes, checker } = options;
 		const tempBoard: Board = {};
 		for (const position in board) {
 			const boardPosition = board[position];
 			if (!boardPosition) continue;
 
-			const possibleMoves = CHESS_HELPERS.legalMoves(board, {
+			let possibleMoves = CHESS_HELPERS.legalMoves(chess, {
 				piece: boardPosition.piece,
 				player: boardPosition.player,
 				startPosition: position
 			});
 
+			if (
+				checkRoutes.length > 0 &&
+				boardPosition.piece.name !== CHESS_PIECE.king.name &&
+				boardPosition.player !== checker
+			) {
+				possibleMoves = possibleMoves.filter((pm) => checkRoutes.includes(pm));
+			}
+
 			if (boardPosition.piece.name === 'pawn') {
 				const [vertical, horizontal] = position.split('_').map(Number);
-				const possibleAttacks =
+				let possibleAttacks =
 					boardPosition.player === PLAYER_WHITE
 						? [`${vertical + 1}_${horizontal - 1}`, `${vertical + 1}_${horizontal + 1}`]
 						: [`${vertical - 1}_${horizontal - 1}`, `${vertical - 1}_${horizontal + 1}`];
+
+				if (
+					checkRoutes.length > 0 &&
+					boardPosition.piece.name !== CHESS_PIECE.king.name &&
+					boardPosition.player !== checker
+				) {
+					possibleAttacks = possibleAttacks.filter((pa) => checkRoutes.includes(pa));
+				}
+
 				tempBoard[position] = {
 					id: boardPosition.id,
 					piece: {
@@ -958,7 +1023,7 @@ const CHESS_HELPERS = {
 	 * Prevent move if king can be captured after the move happens.
 	 */
 	kingCanBeCaputuredAfterMove: (
-		board: Board,
+		chess: ChessInfo,
 		{
 			piece,
 			startPosition,
@@ -966,8 +1031,8 @@ const CHESS_HELPERS = {
 			player
 		}: { piece: Piece; finalPosition: ChessPosition; startPosition: ChessPosition; player: Player }
 	) => {
-		let tempBoard = cloneBoard(board);
-		const isValidMove = CHESS_HELPERS.validatePieceMove(tempBoard, {
+		const clonedChess = clone(chess);
+		const isValidMove = CHESS_HELPERS.validatePieceMove(clonedChess, {
 			piece,
 			finalPosition,
 			startPosition,
@@ -976,24 +1041,26 @@ const CHESS_HELPERS = {
 		if (!isValidMove) return false;
 
 		// Update board position
-		tempBoard[finalPosition] = {
-			id: tempBoard[startPosition]!.id,
+		clonedChess.board[finalPosition] = {
+			id: clonedChess.board[startPosition]!.id,
 			piece: piece,
 			player: player
 		};
 
-		delete tempBoard[startPosition];
+		delete clonedChess.board[startPosition];
 
-		tempBoard = CHESS_HELPERS.generateAllLegalMoves(tempBoard);
+		clonedChess.board = CHESS_HELPERS.generateAllLegalMoves(clonedChess);
 
 		const oponentPieceAvailableMove = Object.entries(
-			Object.fromEntries(Object.entries(tempBoard).filter(([_, value]) => value?.player !== player))
+			Object.fromEntries(
+				Object.entries(clonedChess.board).filter(([_, value]) => value?.player !== player)
+			)
 		)
 			.map(([_, piece]) => piece?.piece.possibleMoves)
 			.flat();
 
 		const ourKingPosition =
-			Object.entries(tempBoard).find(
+			Object.entries(clonedChess.board).find(
 				([_, boardPiece]) => boardPiece?.player === player && boardPiece?.piece.name === 'king'
 			)?.[0] ?? null;
 
@@ -1005,10 +1072,6 @@ const CHESS_HELPERS = {
 		return false;
 	}
 };
-
-function cloneBoard(board: Board) {
-	return { ...board };
-}
 
 export {
 	CHESS_HELPERS,
