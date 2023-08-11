@@ -1,3 +1,4 @@
+// https://stackoverflow.com/a/4460624
 export function clone<T>(item: T): T {
 	if (!item) {
 		return item;

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { PLAYER_BLACK } from '$lib/chess/core';
+	import { CHESS_PIECE } from '$lib/chess/core';
 	import Icon from '@iconify/svelte';
 	import { createEventDispatcher } from 'svelte';
 
@@ -19,11 +19,10 @@
 	const dispatch = createEventDispatcher();
 
 	export let board: Board = {};
-	export let activePlayer: Player = 1;
 	export let activePiece: ActivePiece | null = null;
-	export let rotateable: boolean = true;
+	export let rotate: boolean = true;
 
-	$: rotate = !rotateable ? '' : activePlayer === PLAYER_BLACK ? 'rotate-180' : '';
+	$: rotateClass = !rotate ? 'rotate-180' : '';
 
 	const VERTICAL_DIRECTION_REVERSE = VERTICAL_DIRECTION.reverse();
 
@@ -41,8 +40,8 @@
 <div>
 	<div
 		class="
-			grid grid-cols-8 w-max h-max rounded-md overflow-hidden bg-white duration-150 mx-auto
-			{rotate}
+			grid grid-cols-8 w-max h-max rounded-md overflow-hidden bg-white duration-700 mx-auto
+			{rotateClass}
 		"
 	>
 		{#each VERTICAL_DIRECTION_REVERSE as vertical}
@@ -61,13 +60,15 @@
 						onCellClick(position);
 					}}
 				>
-					{#if piece !== undefined}
-						<div class={piece?.player === 1 ? 'text-white' : 'text-black'}>
+					{#if piece}
+						<div class={piece.player === 1 ? 'text-white' : 'text-black'}>
 							<Icon
-								icon={piece?.piece.icon ?? ''}
+								icon={piece.piece.icon ?? ''}
 								class="
-									!w-5 !h-5 sm:!w-8 sm:!h-8 md:!w-9 md:!h-9 duration-300 								
-									{rotate}
+								!w-6 !h-6 sm:!w-8 sm:!h-8 md:!w-9 md:!h-9 duration-300 								
+									{rotateClass} {piece.piece.name === CHESS_PIECE.bishop.name
+									? '!w-8 !h-8 sm:!w-10 sm:!h-10 md:!w-11 md:!h-11'
+									: ''}
 								"
 							/>
 						</div>
@@ -77,7 +78,7 @@
 							class="
 								absolute bottom-1 right-1 text-xs md:text-base
 								{isOdd(horizontal) ? 'text-[#779954]' : 'text-[#e9edcc]'} 
-								{rotate}
+								{rotateClass}
 							"
 						>
 							{HORIZONTAL_ALIAS[horizontal]}
@@ -88,7 +89,7 @@
 							class="
 								absolute top-1 left-1 text-xs md:text-base
 								{isOdd(vertical) ? 'text-[#779954]' : 'text-[#e9edcc]'} 
-								{rotate}
+								{rotateClass}
 							"
 						>
 							{vertical}

@@ -4,6 +4,7 @@
 	import ChessBoard from './ChessBoard.svelte';
 	import ChessTime from './ChessTime.svelte';
 	import Modal from '../Base/Modal.svelte';
+	import BaseButton from '../Base/Button.svelte';
 
 	import { uuidv4 } from '$lib/utils/uuid';
 	import {
@@ -26,7 +27,7 @@
 	};
 
 	// Game Info
-	let boardRotateable = false;
+	let rotateBoard = true;
 	let activePiece: ActivePiece | null = null;
 	let winner: Winner = {
 		player: null,
@@ -85,7 +86,9 @@
 		const isEnPassant =
 			playerPiece.piece.name === CHESS_PIECE.pawn.name &&
 			Math.abs(finalHorizontal - startHorizontal) === 1 &&
-			[3, 6].includes(finalVertical);
+			[3, 6].includes(finalVertical) &&
+			chessGame.board[`${startVertical}_${finalHorizontal}`] &&
+			chessGame.board[`${startVertical}_${finalHorizontal}`]?.piece.name === CHESS_PIECE.pawn.name;
 
 		const isCastling =
 			playerPiece.piece.name === CHESS_PIECE.king.name &&
@@ -356,7 +359,15 @@
 		</li>
 	</ol>
 </Modal>
-<div class="relative w-full h-[100svh] flex flex-col justify-between">
+<div class="relative w-full h-[100svh] flex flex-col justify-between overflow-hidden">
+	<BaseButton
+		class="absolute top-10 right-4 rounded z-10"
+		on:click={() => {
+			rotateBoard = !rotateBoard;
+		}}
+	>
+		<Icon icon="ic:baseline-crop-rotate" />
+	</BaseButton>
 	<ChessTime
 		timeLeft={chessGame.players[PLAYER_BLACK].time}
 		initialTime={INITIAL_TIME}
@@ -364,8 +375,8 @@
 	/>
 	<div class="flex flex-col gap-1 justify-center bg-[#282724] p-1 md:p-4">
 		<div class="flex flex-wrap justify-start items-center gap-2 w-full text-white">
-			{chessGame.players[PLAYER_BLACK].capturedPieces.reduce((accumulator, currentValue) => {
-				return accumulator + currentValue.power;
+			{chessGame.players[PLAYER_BLACK].capturedPieces.reduce((accumulator, piece) => {
+				return accumulator + piece.power;
 			}, 0)}
 			{#each chessGame.players[PLAYER_BLACK].capturedPieces as capturedPiece}
 				<Icon icon={capturedPiece.icon ?? ''} class="w-4 h-4 md:!w-7 md:!h-7 duration-300 " />
@@ -375,27 +386,26 @@
 			on:cellClick={(event) => {
 				onCellClick(event.detail.position);
 			}}
-			activePlayer={chessGame.currentPlayer}
 			{activePiece}
 			board={chessGame.board}
-			rotateable={boardRotateable}
+			rotate={rotateBoard}
 		>
 			<div slot="cell" let:position>
 				{@const piece = chessGame.board[position]}
 				{#if activePiece?.piece.possibleMoves.includes(position) && activePiece.player !== piece?.player}
 					<div
 						class="
-									w-4 h-4 rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
-									{piece !== undefined ? '' : 'bg-gray-900 bg-opacity-20'}
-								"
+							w-4 h-4 rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
+							{piece !== undefined ? '' : 'bg-gray-900 bg-opacity-20'}
+						"
 					>
 						{#if piece !== undefined}
 							<Icon
 								icon="mdi:sword"
 								class="
-											!w-6 !h-6 md:!w-8 md:!h-8 duration-300 text-red-400 animate-bounce pt-2
-											{chessGame.currentPlayer === PLAYER_BLACK ? 'rotate-180' : ''}
-										"
+									!w-6 !h-6 md:!w-8 md:!h-8 duration-300 text-red-400 animate-bounce pt-2
+									{chessGame.currentPlayer === PLAYER_BLACK ? 'rotate-180' : ''}
+								"
 							/>
 						{/if}
 					</div>
@@ -403,8 +413,8 @@
 			</div>
 		</ChessBoard>
 		<div class="flex flex-row-reverse flex-wrap justify-start items-center gap-2 w-full text-black">
-			{chessGame.players[PLAYER_WHITE].capturedPieces.reduce((accumulator, currentValue) => {
-				return accumulator + currentValue.power;
+			{chessGame.players[PLAYER_WHITE].capturedPieces.reduce((accumulator, piece) => {
+				return accumulator + piece.power;
 			}, 0)}
 			{#each chessGame.players[PLAYER_WHITE].capturedPieces as capturedPiece}
 				<Icon icon={capturedPiece.icon ?? ''} class="w-4 h-4 md:!w-7 md:!h-7 duration-300" />
