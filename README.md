@@ -1,6 +1,7 @@
 # Simple Chess
 
-![image](https://github.com/WailanTirajoh/sveltekit-chess/assets/53980548/7f2d0c5b-79c9-487a-9315-623c9af9921a)
+![image](https://github.com/WailanTirajoh/sveltekit-chess/assets/53980548/60239455-55ab-4a3b-9167-50d4570651c8)
+
 Simple Chess built with SvelteKit.
 
 
