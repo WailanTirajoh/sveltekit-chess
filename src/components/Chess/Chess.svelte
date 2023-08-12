@@ -6,34 +6,44 @@
 	import Modal from '../Base/Modal.svelte';
 	import BaseButton from '../Base/Button.svelte';
 
-	import { uuidv4 } from '$lib/utils/uuid';
 	import {
 		CHESS_PIECE,
 		PLAYER_BLACK,
 		PLAYER_WHITE,
 		CHESS_HELPERS,
 		INITIAL_BOARD_POSITION,
-		INITIAL_TIME,
-		INITIAL_PLAYER_INFO
+		INITIAL_TIME
 	} from '$lib/chess/core';
 	import { authStore } from '../../stores/store';
+	import { uuidv4 } from '$lib/utils/uuid';
 
 	// Chess Information
 	export let chessGame: ChessInfo;
+	export let previewOnly: boolean = false;
 
 	const dispatch = createEventDispatcher();
 
 	// Game Info
-	$: rotateBoard = chessGame.playerWhite === $authStore.data.email;
+	$: rotateBoard = chessGame.playerWhite.email === $authStore.data.email;
 	let activePiece: ActivePiece | null = null;
-	$: authPlayer = chessGame.playerWhite === $authStore.data.email ? PLAYER_WHITE : PLAYER_BLACK;
+	$: viewer = ![chessGame.playerWhite?.email, chessGame.playerBlack?.email].includes(
+		$authStore.data.email
+	);
+	$: authPlayer =
+		chessGame.playerWhite.email === $authStore.data.email ? PLAYER_WHITE : PLAYER_BLACK;
 
 	function onCellClick(position: ChessPosition) {
-		// Prevent start game on no 2 players.
+		// Viewer cant do anything
+		if (viewer || previewOnly) return;
+
+		// Prevent start game when theres only 1 player.
 		if (!chessGame.playerBlack || !chessGame.playerWhite) return;
 
-		if (chessGame.currentPlayer !== authPlayer) return;
+		// Prevent move on game over
 		if (chessGame.winner.player) return;
+
+		// Prevent move other pieces.
+		if (chessGame.currentPlayer !== authPlayer) return;
 
 		let pieceOnPosition = chessGame.board[position];
 		if (activePiece && (!pieceOnPosition || pieceOnPosition.player !== chessGame.currentPlayer)) {
@@ -248,7 +258,6 @@
 	}
 
 	// Replay
-	// TODO: Replay controls
 	async function viewReplay(replayHistory: string) {
 		resetBoard();
 
@@ -277,7 +286,6 @@
 	// End Replay
 
 	// Board History
-	// let moveHistories: Array<PieceMoveHistory> = [];
 	function storeMoveHistory(pieceMoveHistory: PieceMoveHistory) {
 		chessGame.moveHistory = [...chessGame.moveHistory, pieceMoveHistory];
 	}
@@ -287,11 +295,10 @@
 	let timeinterval: NodeJS.Timer;
 	function timeCountDown() {
 		if (chessGame.players[chessGame.currentPlayer].time === 0) {
-			chessGame.winner.player =
-				chessGame.currentPlayer === PLAYER_BLACK ? PLAYER_WHITE : PLAYER_BLACK;
-			chessGame.winner.type = 'On Time';
-			activePiece = null;
-			clearInterval(timeinterval);
+			onGameOver({
+				winnerPlayer: chessGame.currentPlayer === PLAYER_BLACK ? PLAYER_WHITE : PLAYER_BLACK,
+				type: 'On Time'
+			});
 		} else {
 			chessGame.players[chessGame.currentPlayer].time =
 				chessGame.players[chessGame.currentPlayer].time - 1;
@@ -317,6 +324,13 @@
 
 	onMount(() => {
 		chessGame.board = CHESS_HELPERS.generateAllLegalMoves(chessGame);
+		if ((!chessGame.playerWhite || !chessGame.playerBlack) || !!chessGame.winner.type) {
+			console.log('in');
+			if (timeinterval) clearInterval(timeinterval);
+			return;
+		} else {
+			timeinterval = setInterval(timeCountDown, 1000);
+		}
 	});
 
 	onDestroy(() => {
@@ -375,16 +389,20 @@
 			<Icon icon="ic:baseline-crop-rotate" />
 		</BaseButton>
 		<ChessTime
-			timeLeft={chessGame.players[PLAYER_BLACK].time}
+			timeLeft={chessGame.players[authPlayer === 1 ? 2 : 1].time}
 			initialTime={INITIAL_TIME}
-			player={PLAYER_BLACK}
+			player={authPlayer === 1 ? 2 : 1}
 		/>
 		<div class="flex flex-col gap-1 justify-center bg-[#282724] p-1 md:p-4">
-			<div class="flex flex-wrap justify-start items-center gap-2 w-full text-white">
-				{chessGame.players[PLAYER_BLACK].capturedPieces.reduce((accumulator, piece) => {
+			<div
+				class="flex flex-wrap justify-start items-center gap-2 w-full {authPlayer === 1
+					? 'text-white'
+					: 'text-black'}"
+			>
+				{chessGame.players[authPlayer === 1 ? 2 : 1].capturedPieces.reduce((accumulator, piece) => {
 					return accumulator + piece.power;
 				}, 0)}
-				{#each chessGame.players[PLAYER_BLACK].capturedPieces as capturedPiece}
+				{#each chessGame.players[authPlayer === 1 ? 2 : 1].capturedPieces as capturedPiece}
 					<Icon icon={capturedPiece.icon ?? ''} class="w-4 h-4 md:!w-7 md:!h-7 duration-300 " />
 				{/each}
 			</div>
@@ -410,7 +428,7 @@
 									icon="mdi:sword"
 									class="
 									!w-6 !h-6 md:!w-8 md:!h-8 duration-300 text-red-400 animate-bounce pt-2
-									{chessGame.currentPlayer === PLAYER_BLACK ? 'rotate-180' : ''}
+									{rotateBoard ? '!rotate-180' : ''}
 								"
 								/>
 							{/if}
@@ -418,31 +436,36 @@
 					{/if}
 				</div>
 			</ChessBoard>
-			<div class="">
-				{#if authPlayer === chessGame.currentPlayer}
-					Your Turn
-				{/if}
-			</div>
 			<div class="text-center">
-				{#if chessGame.winner.player}
+				{#if !chessGame.playerWhite || !chessGame.playerBlack}
+					Please wait for other player to join.
+				{:else if chessGame.winner.player}
 					{chessGame.winner.player === PLAYER_WHITE ? 'White' : 'Black'} Win {chessGame.winner.type}
+				{:else if authPlayer === chessGame.currentPlayer}
+					Your Turn
+				{:else}
+					Enemy Turn
 				{/if}
 			</div>
+			<div class="text-center" />
 			<div
-				class="flex flex-row-reverse flex-wrap justify-start items-center gap-2 w-full text-black"
+				class="flex flex-row-reverse flex-wrap justify-start items-center gap-2 w-full {authPlayer ===
+				1
+					? 'text-black'
+					: 'text-white'}"
 			>
-				{chessGame.players[PLAYER_WHITE].capturedPieces.reduce((accumulator, piece) => {
+				{chessGame.players[authPlayer].capturedPieces.reduce((accumulator, piece) => {
 					return accumulator + piece.power;
 				}, 0)}
-				{#each chessGame.players[PLAYER_WHITE].capturedPieces as capturedPiece}
+				{#each chessGame.players[authPlayer].capturedPieces as capturedPiece}
 					<Icon icon={capturedPiece.icon ?? ''} class="w-4 h-4 md:!w-7 md:!h-7 duration-300" />
 				{/each}
 			</div>
 		</div>
 		<ChessTime
-			timeLeft={chessGame.players[PLAYER_WHITE].time}
+			timeLeft={chessGame.players[authPlayer].time}
 			initialTime={INITIAL_TIME}
-			player={PLAYER_WHITE}
+			player={authPlayer}
 		/>
 	</div>
 {/if}

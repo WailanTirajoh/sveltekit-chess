@@ -149,7 +149,6 @@ const PIECE_RULE: PieceRule = {
 	},
 	knight: {
 		rule: (chess: ChessInfo, { startPosition, finalPosition, player }: PieceMove) => {
-			const { board } = chess;
 			const [startVertical, startHorizontal] = startPosition.split('_').map(Number);
 			const [finalVertical, finalHorizontal] = finalPosition.split('_').map(Number);
 

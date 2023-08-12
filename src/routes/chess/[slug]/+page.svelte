@@ -6,7 +6,6 @@
 		PLAYER_BLACK,
 		PLAYER_WHITE
 	} from '$lib/chess/core';
-	import { uuidv4 } from '$lib/utils/uuid';
 	import Chess from '../../../components/Chess/Chess.svelte';
 	import { auth, db } from '$lib/firebase/firebase';
 	import {
@@ -17,74 +16,24 @@
 		type DocumentData,
 		onSnapshot
 	} from 'firebase/firestore';
-	import { onMount } from 'svelte';
-	import { authStore } from '../../../stores/store';
+	import { onDestroy, onMount } from 'svelte';
 	import Modal from '../../../components/Base/Modal.svelte';
 	import Icon from '@iconify/svelte';
+	import Button from '../../../components/Base/Button.svelte';
+	import type { Unsubscribe } from 'firebase/auth';
 
 	export let data;
+
 	let chess: ChessInfo;
 	let chessRef: DocumentReference<DocumentData, DocumentData>;
-
-	onMount(async () => {
-		auth.onAuthStateChanged(async (user) => {
-			if (user) {
-				const docRef = doc(db, 'chess', data.slug);
-				const docSnap = await getDoc(docRef);
-				chessRef = doc(db, 'chess', data.slug);
-				if (!docSnap.exists()) {
-					const playAs = await choosePlayAs();
-					await setDoc(
-						chessRef,
-						{
-							id: data.slug,
-							board: INITIAL_BOARD_POSITION,
-							moveHistory: [],
-							players: INITIAL_PLAYER_INFO,
-							currentPlayer: PLAYER_WHITE,
-							playerWhite: playAs === PLAYER_WHITE ? user.email : null,
-							playerBlack: playAs === PLAYER_BLACK ? user.email : null,
-							moveCount: 1,
-							winner: {
-								player: null,
-								type: null
-							}
-						},
-						{
-							merge: false
-						}
-					);
-				} else {
-					const chessData = docSnap.data();
-					chess = chessData as ChessInfo;
-					if (
-						(!chess.playerBlack || !chess.playerWhite) &&
-						![chess.playerBlack, chess.playerWhite].includes(user.email)
-					) {
-						const playAs = await choosePlayAs();
-						if (playAs === PLAYER_WHITE) {
-							chess.playerWhite = user.email;
-						} else {
-							chess.playerBlack = user.email;
-						}
-						await setDoc(chessRef, chess, {
-							merge: false
-						});
-					}
-				}
-			}
-			const unsub = onSnapshot(doc(db, 'chess', data.slug), (doc) => {
-				chess = doc.data() as ChessInfo;
-			});
-		});
-	});
+	let unsubscribe: Unsubscribe;
 
 	async function syncData() {
 		chessRef = doc(db, 'chess', data.slug);
-		await setDoc(chessRef, chess, { merge: false });
+		await setDoc(chessRef, chess);
 	}
 
-	// Promotion
+	// PlayAs
 	let showModalChoosePlayAs = false;
 	let playAsResolver: (player: Player) => void;
 	function choosePlayAs() {
@@ -94,48 +43,112 @@
 		});
 	}
 
-	function onChoosePromotionPiece(player: Player) {
+	function onChoosePlayAsPiece(player: Player) {
 		playAsResolver(player);
 		showModalChoosePlayAs = false;
 	}
-	// End Promotion
+	// End PlayAs
+
+	onMount(async () => {
+		auth.onAuthStateChanged(async (user) => {
+			if (!user) return;
+
+			const docRef = doc(db, 'chess', data.slug);
+			const docSnap = await getDoc(docRef);
+			chessRef = doc(db, 'chess', data.slug);
+
+			const userData: UserInfo = {
+				uid: user.uid,
+				displayName: user.displayName,
+				email: user.email,
+				photoUrl: user.photoURL
+			};
+
+			if (!docSnap.exists()) {
+				const playAs = await choosePlayAs();
+				const chessInitialData = {
+					id: data.slug,
+					board: INITIAL_BOARD_POSITION,
+					moveHistory: [],
+					players: INITIAL_PLAYER_INFO,
+					currentPlayer: PLAYER_WHITE,
+					playerWhite: playAs === PLAYER_WHITE ? userData : null,
+					playerBlack: playAs === PLAYER_BLACK ? userData : null,
+					moveCount: 1,
+					winner: {
+						player: null,
+						type: null
+					}
+				};
+				await setDoc(chessRef, chessInitialData);
+			} else {
+				const chessData = docSnap.data();
+				chess = chessData as ChessInfo;
+				if (
+					(!chess.playerBlack || !chess.playerWhite) &&
+					![chess.playerBlack?.uid, chess.playerWhite?.uid].includes(userData.uid)
+				) {
+					const playAs = await choosePlayAs();
+					if (playAs === PLAYER_WHITE) {
+						chess.playerWhite = userData;
+					} else {
+						chess.playerBlack = userData;
+					}
+					await setDoc(chessRef, chess);
+				}
+			}
+
+			unsubscribe = onSnapshot(doc(db, 'chess', data.slug), (doc) => {
+				chess = doc.data() as ChessInfo;
+			});
+		});
+	});
+
+	onDestroy(() => {
+		if (unsubscribe) unsubscribe();
+	});
 </script>
 
-<Modal class="bg-[#302e2b]" bind:showModal={showModalChoosePlayAs}>
-	<ol class="flex gap-2">
+<Modal
+	class="bg-[#302e2b] overflow-hidden rounded text-white"
+	bind:showModal={showModalChoosePlayAs}
+>
+	<ol class="flex gap-4">
 		<li>
-			<button
+			<Button
+				class="grid gap-2 justify-center p-4 w-40 {chess?.playerWhite ? 'bg-[#282724]' : ''}"
+				disabled={!!chess?.playerWhite}
 				on:click={() => {
-					onChoosePromotionPiece(PLAYER_WHITE);
+					onChoosePlayAsPiece(PLAYER_WHITE);
 				}}
 			>
-				<div class="">
+				<div class="flex justify-center">
 					<Icon icon={CHESS_PIECE.king.icon} class="w-20 h-20 duration-300 pt-2 text-white" />
 				</div>
-				<div class="">
-					{chess?.playerWhite ?? 'Choose'}
+				<div>
+					{chess?.playerWhite.displayName ?? 'Choose'}
 				</div>
-			</button>
+			</Button>
 		</li>
 		<li>
-			<button
+			<Button
+				class="grid gap-2 justify-center p-4 w-40"
+				disabled={!!chess?.playerBlack}
 				on:click={() => {
-					onChoosePromotionPiece(PLAYER_BLACK);
+					onChoosePlayAsPiece(PLAYER_BLACK);
 				}}
 			>
-				<div class="">
+				<div class="flex justify-center">
 					<Icon icon={CHESS_PIECE.king.icon} class="w-20 h-20 duration-300 pt-2 text-black" />
 				</div>
-				<div class="">
+				<div>
 					{chess?.playerBlack ?? 'Choose'}
 				</div>
-			</button>
+			</Button>
 		</li>
 	</ol>
 </Modal>
+
 {#if chess}
-	{#if !chess.playerWhite || !chess.playerBlack}
-		<div class="text-center">Please wait for other player to join.</div>
-	{/if}
 	<Chess bind:chessGame={chess} on:onMove={() => syncData()} on:gameOver={() => syncData()} />
 {/if}

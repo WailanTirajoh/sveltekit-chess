@@ -62,6 +62,13 @@ declare global {
 		type: string | null;
 	}
 
+	interface UserInfo {
+		uid: string;
+		displayName: string | null;
+		email: string | null;
+		photoUrl: string | null;
+	}
+
 	interface ChessInfo {
 		id: string;
 		board: Board;
@@ -69,8 +76,8 @@ declare global {
 		players: PlayerInfo;
 		moveCount: number;
 		currentPlayer: Player;
-		playerWhite: string | null;
-		playerBlack: string | null;
+		playerWhite: UserInfo;
+		playerBlack: UserInfo;
 		winner: Winner;
 	}
 }
