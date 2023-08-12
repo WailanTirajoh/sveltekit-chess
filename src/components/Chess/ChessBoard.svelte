@@ -21,6 +21,24 @@
 	export let board: Board = {};
 	export let activePiece: ActivePiece | null = null;
 	export let rotate: boolean = true;
+	export let boardSize: 'xxs' | 'xs' | 'sm' | 'md' | 'default' = 'default';
+	export let lastMove: PieceMoveHistory | null = null
+
+	const boardClass: Record<typeof boardSize, string> = {
+		xxs: 'w-8 h-8 sm:h-10 sm:w-10 md:h-12 md:w-12',
+		xs: 'w-8 h-8 sm:h-11 sm:w-11 md:h-13 md:w-13',
+		md: 'w-8 h-8 sm:h-12 sm:w-12 md:h-14 md:w-14',
+		sm: 'w-10 h-10 sm:h-13 sm:w-13 md:h-15 md:w-15',
+		default: 'w-11 h-11 sm:h-14 sm:w-14 md:h-16 md:w-16'
+	};
+
+	const pieceClass: Record<typeof boardSize, string> = {
+		xxs: '!w-5 !h-5 sm:!w-5 sm:!h-5 md:!w-6 md:!h-6',
+		xs: '!w-5 !h-5 sm:!w-7 sm:!h-7 md:!w-8 md:!h-8',
+		md: '!w-5 !h-5 sm:!w-7 sm:!h-7 md:!w-8 md:!h-8',
+		sm: '!w-5 !h-5 sm:!w-7 sm:!h-7 md:!w-8 md:!h-8',
+		default: '!w-6 !h-6 sm:!w-8 sm:!h-8 md:!w-9 md:!h-9'
+	};
 
 	$: rotateClass = !rotate ? 'rotate-180' : '';
 
@@ -50,11 +68,13 @@
 				{@const piece = board[position]}
 				<button
 					id={position}
-					aria-label="chess-board-cell-${position}"
+					aria-label="chess-board-cell-{position}"
 					class="
-						w-11 h-11 sm:h-14 sm:w-14 md:h-16 md:w-16 relative flex justify-center items-center transition-width duration-300 transition-border
+						relative flex justify-center items-center transition-width duration-300 transition-border
 						{activePiece?.position === position ? '!bg-green-600 !bg-opacity-60 ' : ''}
 						{isOdd(vertical) ? 'odd:bg-[#e9edcc] even:bg-[#779954]' : 'odd:bg-[#779954] even:bg-[#e9edcc]'} 
+						{boardClass[boardSize] ?? ''}
+						{[lastMove?.startPosition, lastMove?.finalPosition].includes(position) ? '!bg-orange-300' : ''}
 					"
 					on:click={() => {
 						onCellClick(position);
@@ -62,15 +82,7 @@
 				>
 					{#if piece}
 						<div class={piece.player === 1 ? 'text-white' : 'text-black'}>
-							<Icon
-								icon={piece.piece.icon ?? ''}
-								class="
-								!w-6 !h-6 sm:!w-8 sm:!h-8 md:!w-9 md:!h-9 duration-300 								
-									{rotateClass} {piece.piece.name === CHESS_PIECE.bishop.name
-									? '!w-8 !h-8 sm:!w-10 sm:!h-10 md:!w-11 md:!h-11'
-									: ''}
-								"
-							/>
+							<Icon icon={piece.piece.icon ?? ''} class="{pieceClass[boardSize]} duration-300 {rotateClass}" />
 						</div>
 					{/if}
 					{#if vertical === 1}

@@ -76,8 +76,8 @@ declare global {
 		players: PlayerInfo;
 		moveCount: number;
 		currentPlayer: Player;
-		playerWhite: UserInfo;
-		playerBlack: UserInfo;
+		playerWhite: UserInfo | null;
+		playerBlack: UserInfo | null;
 		winner: Winner;
 	}
 }

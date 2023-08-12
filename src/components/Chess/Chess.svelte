@@ -24,13 +24,14 @@
 	const dispatch = createEventDispatcher();
 
 	// Game Info
-	$: rotateBoard = chessGame.playerWhite.email === $authStore.data.email;
+	$: rotateBoard = chessGame.playerWhite?.email === $authStore.data?.email;
 	let activePiece: ActivePiece | null = null;
 	$: viewer = ![chessGame.playerWhite?.email, chessGame.playerBlack?.email].includes(
 		$authStore.data.email
 	);
 	$: authPlayer =
-		chessGame.playerWhite.email === $authStore.data.email ? PLAYER_WHITE : PLAYER_BLACK;
+		chessGame.playerWhite?.email === $authStore.data?.email ? PLAYER_WHITE : PLAYER_BLACK;
+	$: lastMove = chessGame.moveHistory[-1]
 
 	function onCellClick(position: ChessPosition) {
 		// Viewer cant do anything
@@ -324,7 +325,7 @@
 
 	onMount(() => {
 		chessGame.board = CHESS_HELPERS.generateAllLegalMoves(chessGame);
-		if ((!chessGame.playerWhite || !chessGame.playerBlack) || !!chessGame.winner.type) {
+		if (!chessGame.playerWhite || !chessGame.playerBlack || !!chessGame.winner.type) {
 			console.log('in');
 			if (timeinterval) clearInterval(timeinterval);
 			return;
@@ -379,93 +380,138 @@
 			</li>
 		</ol>
 	</Modal>
-	<div class="relative w-full h-full flex flex-col justify-between overflow-hidden">
-		<BaseButton
-			class="absolute top-10 right-4 rounded z-10"
-			on:click={() => {
-				rotateBoard = !rotateBoard;
-			}}
-		>
-			<Icon icon="ic:baseline-crop-rotate" />
-		</BaseButton>
-		<ChessTime
-			timeLeft={chessGame.players[authPlayer === 1 ? 2 : 1].time}
-			initialTime={INITIAL_TIME}
-			player={authPlayer === 1 ? 2 : 1}
-		/>
-		<div class="flex flex-col gap-1 justify-center bg-[#282724] p-1 md:p-4">
-			<div
-				class="flex flex-wrap justify-start items-center gap-2 w-full {authPlayer === 1
-					? 'text-white'
-					: 'text-black'}"
-			>
-				{chessGame.players[authPlayer === 1 ? 2 : 1].capturedPieces.reduce((accumulator, piece) => {
-					return accumulator + piece.power;
-				}, 0)}
-				{#each chessGame.players[authPlayer === 1 ? 2 : 1].capturedPieces as capturedPiece}
-					<Icon icon={capturedPiece.icon ?? ''} class="w-4 h-4 md:!w-7 md:!h-7 duration-300 " />
-				{/each}
-			</div>
-			<ChessBoard
-				on:cellClick={(event) => {
-					onCellClick(event.detail.position);
+	<div class="flex flex-col gap-4">
+		<div class="flex justify-start">
+			{#if authPlayer === PLAYER_BLACK}
+				{#if chessGame.playerWhite}
+					<div class="flex items-start gap-2">
+						<img class="w-8 h-8 rounded" src={chessGame.playerWhite.photoUrl} alt="" />
+						{chessGame.playerWhite.displayName}
+					</div>
+				{:else}
+					No Opponent
+				{/if}
+			{:else if chessGame.playerBlack}
+				<div class="flex items-start gap-2">
+					<img class="w-8 h-8 rounded" src={chessGame.playerBlack.photoUrl} alt="" />
+					{chessGame.playerBlack.displayName}
+				</div>
+			{:else}
+				No Opponent
+			{/if}
+		</div>
+		<div class="relative w-full h-full flex flex-col justify-between overflow-hidden rounded-lg">
+			<BaseButton
+				class="absolute top-10 right-4 rounded z-10"
+				on:click={() => {
+					rotateBoard = !rotateBoard;
 				}}
-				{activePiece}
-				board={chessGame.board}
-				rotate={rotateBoard}
 			>
-				<div slot="cell" let:position>
-					{@const piece = chessGame.board[position]}
-					{#if activePiece?.piece.possibleMoves.includes(position) && activePiece.player !== piece?.player}
-						<div
-							class="
-							w-4 h-4 rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
-							{piece !== undefined ? '' : 'bg-gray-900 bg-opacity-20'}
-						"
-						>
-							{#if piece !== undefined}
-								<Icon
-									icon="mdi:sword"
-									class="
-									!w-6 !h-6 md:!w-8 md:!h-8 duration-300 text-red-400 animate-bounce pt-2
-									{rotateBoard ? '!rotate-180' : ''}
+				<Icon icon="ic:baseline-crop-rotate" />
+			</BaseButton>
+			<ChessTime
+				timeLeft={chessGame.players[authPlayer === 1 ? 2 : 1].time}
+				initialTime={INITIAL_TIME}
+				player={authPlayer === 1 ? 2 : 1}
+			/>
+			<div class="flex flex-col gap-1 justify-center bg-[#282724] p-1 md:p-4">
+				<div
+					class="flex flex-wrap justify-start items-center gap-2 w-full {authPlayer === 1
+						? 'text-white'
+						: 'text-black'}"
+				>
+					{chessGame.players[authPlayer === 1 ? 2 : 1].capturedPieces.reduce(
+						(accumulator, piece) => {
+							return accumulator + piece.power;
+						},
+						0
+					)}
+					{#each chessGame.players[authPlayer === 1 ? 2 : 1].capturedPieces as capturedPiece}
+						<Icon icon={capturedPiece.icon ?? ''} class="w-4 h-4 md:!w-7 md:!h-7 duration-300 " />
+					{/each}
+				</div>
+				<ChessBoard
+					on:cellClick={(event) => {
+						onCellClick(event.detail.position);
+					}}
+					{activePiece}
+					board={chessGame.board}
+					rotate={rotateBoard}
+					lastMove={chessGame.moveHistory[chessGame.moveHistory.length - 1]}
+				>
+					<div slot="cell" let:position>
+						{@const piece = chessGame.board[position]}
+						{#if activePiece?.piece.possibleMoves.includes(position) && activePiece.player !== piece?.player}
+							<div
+								class="
+									w-4 h-4 rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
+									{piece !== undefined ? '' : 'bg-gray-900 bg-opacity-20'}
 								"
-								/>
-							{/if}
-						</div>
+							>
+								{#if piece !== undefined}
+									<Icon
+										icon="mdi:sword"
+										class="
+											!w-6 !h-6 md:!w-8 md:!h-8 duration-300 text-red-400 animate-bounce pt-2
+											{rotateBoard ? '!rotate-180' : ''}
+										"
+									/>
+								{/if}
+							</div>
+						{/if}
+					</div>
+				</ChessBoard>
+				<div class="text-center">
+					{#if !chessGame.playerWhite || !chessGame.playerBlack}
+						Waiting for opponent ...
+					{:else if chessGame.winner.player}
+						{chessGame.winner.player === PLAYER_WHITE ? 'White' : 'Black'} Win {chessGame.winner
+							.type}
+					{:else if authPlayer === chessGame.currentPlayer}
+						Your Turn
+					{:else}
+						Enemy Turn
 					{/if}
 				</div>
-			</ChessBoard>
-			<div class="text-center">
-				{#if !chessGame.playerWhite || !chessGame.playerBlack}
-					Please wait for other player to join.
-				{:else if chessGame.winner.player}
-					{chessGame.winner.player === PLAYER_WHITE ? 'White' : 'Black'} Win {chessGame.winner.type}
-				{:else if authPlayer === chessGame.currentPlayer}
-					Your Turn
-				{:else}
-					Enemy Turn
-				{/if}
+				<div class="text-center" />
+				<div
+					class="flex flex-row-reverse flex-wrap justify-start items-center gap-2 w-full {authPlayer ===
+					1
+						? 'text-black'
+						: 'text-white'}"
+				>
+					{chessGame.players[authPlayer].capturedPieces.reduce((accumulator, piece) => {
+						return accumulator + piece.power;
+					}, 0)}
+					{#each chessGame.players[authPlayer].capturedPieces as capturedPiece}
+						<Icon icon={capturedPiece.icon ?? ''} class="w-4 h-4 md:!w-7 md:!h-7 duration-300" />
+					{/each}
+				</div>
 			</div>
-			<div class="text-center" />
-			<div
-				class="flex flex-row-reverse flex-wrap justify-start items-center gap-2 w-full {authPlayer ===
-				1
-					? 'text-black'
-					: 'text-white'}"
-			>
-				{chessGame.players[authPlayer].capturedPieces.reduce((accumulator, piece) => {
-					return accumulator + piece.power;
-				}, 0)}
-				{#each chessGame.players[authPlayer].capturedPieces as capturedPiece}
-					<Icon icon={capturedPiece.icon ?? ''} class="w-4 h-4 md:!w-7 md:!h-7 duration-300" />
-				{/each}
-			</div>
+			<ChessTime
+				timeLeft={chessGame.players[authPlayer].time}
+				initialTime={INITIAL_TIME}
+				player={authPlayer}
+			/>
 		</div>
-		<ChessTime
-			timeLeft={chessGame.players[authPlayer].time}
-			initialTime={INITIAL_TIME}
-			player={authPlayer}
-		/>
+		<div class="flex justify-start">
+			{#if authPlayer === PLAYER_WHITE}
+				{#if chessGame.playerWhite}
+					<div class="flex items-start gap-2">
+						<img class="w-8 h-8 rounded" src={chessGame.playerWhite.photoUrl} alt="" />
+						{chessGame.playerWhite.displayName}
+					</div>
+				{:else}
+					No Opponent
+				{/if}
+			{:else if chessGame.playerBlack}
+				<div class="flex items-start gap-2">
+					<img class="w-8 h-8 rounded" src={chessGame.playerBlack.photoUrl} alt="" />
+					{chessGame.playerBlack.displayName}
+				</div>
+			{:else}
+				No Opponent
+			{/if}
+		</div>
 	</div>
 {/if}
