@@ -380,8 +380,8 @@
 			</li>
 		</ol>
 	</Modal>
-	<div class="flex flex-col gap-4">
-		<div class="flex justify-start">
+	<div class="flex flex-col gap-2">
+		<div class="flex justify-start px-2">
 			{#if authPlayer === PLAYER_BLACK}
 				{#if chessGame.playerWhite}
 					<div class="flex items-start gap-2">
@@ -400,9 +400,9 @@
 				No Opponent
 			{/if}
 		</div>
-		<div class="relative w-full h-full flex flex-col justify-between overflow-hidden rounded-lg">
+		<div class="relative w-full h-full flex flex-col justify-between overflow-hidden rounded-lg bg-[#282724]">
 			<BaseButton
-				class="absolute top-10 right-4 rounded z-10"
+				class="absolute top-10 right-4 rounded z-10 hidden"
 				on:click={() => {
 					rotateBoard = !rotateBoard;
 				}}
@@ -494,7 +494,7 @@
 				player={authPlayer}
 			/>
 		</div>
-		<div class="flex justify-start">
+		<div class="flex justify-start px-2">
 			{#if authPlayer === PLAYER_WHITE}
 				{#if chessGame.playerWhite}
 					<div class="flex items-start gap-2">

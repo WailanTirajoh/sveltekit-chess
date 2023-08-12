@@ -150,14 +150,14 @@
 </Modal>
 
 <div class="grid grid-cols-12 gap-4">
-	<div class="col-span-12">
+	<!-- <div class="col-span-12">
 		<a href="/dashboard">
 			<Button class="flex gap-2 items-center">
 				<Icon icon="pajamas:go-back" />
 				Back
 			</Button>
 		</a>
-	</div>
+	</div> -->
 	<div class="col-span-12">
 		{#if chess}
 			<Chess bind:chessGame={chess} on:onMove={() => syncData()} on:gameOver={() => syncData()} />
