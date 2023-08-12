@@ -8,7 +8,7 @@
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-noninteractive-element-interactions -->
-<dialog bind:this={dialog}>
+<dialog bind:this={dialog} style="background: initial">
 	<!-- svelte-ignore a11y-no-static-element-interactions -->
 	<div class={$$props.class} on:click|stopPropagation>
 		<slot name="header" />

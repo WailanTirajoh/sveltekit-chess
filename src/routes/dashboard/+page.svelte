@@ -85,7 +85,10 @@
 						</div>
 					{/each}
 				{:else}
-					<div class="text-center">No Data</div>
+					<div class="text-center w-full h-44 md:h-96 bg-[#262522] rounded-lg" />
+					<div class="text-center w-full h-44 md:h-96 bg-[#262522] rounded-lg" />
+					<div class="text-center w-full h-44 md:h-96 bg-[#262522] rounded-lg" />
+					<div class="text-center w-full h-44 md:h-96 bg-[#262522] rounded-lg" />
 				{/if}
 			</div>
 		</div>

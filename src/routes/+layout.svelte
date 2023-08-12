@@ -81,12 +81,14 @@
 
 <div class="app">
 	<main class="bg-[#302e2b] h-full min-h-[100svh] text-white">
-		<header class="flex items-center justify-between p-2 bg-[#282724] shadow-inner z-20 fixed top-0 w-full h-16 border-b border-b-[#3c3b39]">
+		<header
+			class="flex items-center justify-between p-2 bg-[#282724] shadow-inner z-20 fixed top-0 w-full h-11 border-b border-b-[#3c3b39]"
+		>
 			<div class="" />
 			<div class="">
 				{#if $authStore.user}
 					<Popover style="position: relative;">
-						<PopoverButton use={[popperRef]}>
+						<PopoverButton class="flex items-center" use={[popperRef]}>
 							<img
 								class="rounded-full w-8 h-8"
 								src={$authStore.user.photoURL}
@@ -95,16 +97,18 @@
 						</PopoverButton>
 
 						<PopoverPanel
-							class="bg-[#282724] rounded shadow overflow-hidden z-20"
+							class="bg-[#282724] border border-[#3c3b39] rounded shadow overflow-hidden z-20"
 							use={[[popperContent, popperOptions]]}
 						>
 							<ul>
 								<li>
 									<Button
 										variant="unstyled"
-										class="w-36 hover:bg-gray-800 p-2"
-										on:click={handleLogout}>Logout</Button
+										class="w-36 bg-[#282724] hover:bg-[#1c1b19] p-2"
+										on:click={handleLogout}
 									>
+										Logout
+									</Button>
 								</li>
 							</ul>
 						</PopoverPanel>
@@ -114,7 +118,7 @@
 				{/if}
 			</div>
 		</header>
-		<div class="p-2 pt-20">
+		<div class="pt-16 md:px-2">
 			<slot />
 		</div>
 	</main>

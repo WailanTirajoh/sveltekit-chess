@@ -29,7 +29,7 @@
 		xs: 'w-8 h-8 sm:h-11 sm:w-11 md:h-13 md:w-13',
 		md: 'w-8 h-8 sm:h-12 sm:w-12 md:h-14 md:w-14',
 		sm: 'w-10 h-10 sm:h-13 sm:w-13 md:h-15 md:w-15',
-		default: 'w-11 h-11 sm:h-14 sm:w-14 md:h-16 md:w-16'
+		default: 'w-11 h-11 sm:h-16 sm:w-16 md:h-20 md:w-20'
 	};
 
 	const pieceClass: Record<typeof boardSize, string> = {
@@ -37,7 +37,7 @@
 		xs: '!w-5 !h-5 sm:!w-7 sm:!h-7 md:!w-8 md:!h-8',
 		md: '!w-5 !h-5 sm:!w-7 sm:!h-7 md:!w-8 md:!h-8',
 		sm: '!w-5 !h-5 sm:!w-7 sm:!h-7 md:!w-8 md:!h-8',
-		default: '!w-6 !h-6 sm:!w-8 sm:!h-8 md:!w-9 md:!h-9'
+		default: '!w-7 !h-7 sm:!w-9 sm:!h-9 md:!w-10 md:!h-10'
 	};
 
 	$: rotateClass = !rotate ? 'rotate-180' : '';
@@ -81,7 +81,7 @@
 					}}
 				>
 					{#if piece}
-						<div class={piece.player === 1 ? 'text-white' : 'text-black'}>
+						<div class={piece.player === 1 ? 'text-[#ffffff]' : 'text-[#2c2b2b]'}>
 							<Icon icon={piece.piece.icon ?? ''} class="{pieceClass[boardSize]} duration-300 {rotateClass}" />
 						</div>
 					{/if}
