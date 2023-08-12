@@ -1,4 +1,14 @@
 <script lang="ts">
+	import Button from '../components/Base/Button.svelte';
+	import { authHandlers } from '../stores/store';
+
+	async function handleLoginGoogle() {
+		try {
+			await authHandlers.loginWithGoogle();
+		} catch (error) {
+			console.log('Error:', error);
+		}
+	}
 </script>
 
 <svelte:head>
@@ -6,4 +16,8 @@
 	<meta name="description" content="Simple chess, to learn svelte" />
 </svelte:head>
 
-<section class="h-full">Welcome</section>
+<section class="h-screen w-full flex items-center justify-center">
+	<div class="bg-[#282724] p-2 -mt-64 w-96">
+		<Button class="w-full" on:click={() => handleLoginGoogle()}>Login With Google</Button>
+	</div>
+</section>
