@@ -126,7 +126,7 @@
 					<Icon icon={CHESS_PIECE.king.icon} class="w-20 h-20 duration-300 pt-2 text-white" />
 				</div>
 				<div>
-					{chess?.playerWhite.displayName ?? 'Choose'}
+					{chess?.playerWhite?.displayName ?? 'Choose'}
 				</div>
 			</Button>
 		</li>
@@ -142,13 +142,25 @@
 					<Icon icon={CHESS_PIECE.king.icon} class="w-20 h-20 duration-300 pt-2 text-black" />
 				</div>
 				<div>
-					{chess?.playerBlack ?? 'Choose'}
+					{chess?.playerBlack?.displayName ?? 'Choose'}
 				</div>
 			</Button>
 		</li>
 	</ol>
 </Modal>
 
-{#if chess}
-	<Chess bind:chessGame={chess} on:onMove={() => syncData()} on:gameOver={() => syncData()} />
-{/if}
+<div class="grid grid-cols-12 gap-4">
+	<div class="col-span-12">
+		<a href="/dashboard">
+			<Button class="flex gap-2 items-center">
+				<Icon icon="pajamas:go-back" />
+				Back
+			</Button>
+		</a>
+	</div>
+	<div class="col-span-12">
+		{#if chess}
+			<Chess bind:chessGame={chess} on:onMove={() => syncData()} on:gameOver={() => syncData()} />
+		{/if}
+	</div>
+</div>

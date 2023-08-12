@@ -7,7 +7,7 @@ const PLAYER_WHITE: Player = 1;
 
 const PLAYER_BLACK: Player = 2;
 
-const INITIAL_TIME = 60;
+const INITIAL_TIME = 3 * 60;
 
 const INITIAL_PLAYER_INFO = {
 	1: {

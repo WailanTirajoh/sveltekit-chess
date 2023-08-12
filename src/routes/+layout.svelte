@@ -81,7 +81,7 @@
 
 <div class="app">
 	<main class="bg-[#302e2b] h-full min-h-[100svh] text-white">
-		<header class="flex justify-between p-2 bg-[#282724] shadow-inner z-20">
+		<header class="flex items-center justify-between p-2 bg-[#282724] shadow-inner z-20 fixed top-0 w-full h-16 border-b border-b-[#3c3b39]">
 			<div class="" />
 			<div class="">
 				{#if $authStore.user}
@@ -114,7 +114,7 @@
 				{/if}
 			</div>
 		</header>
-		<div class="p-2">
+		<div class="p-2 pt-20">
 			<slot />
 		</div>
 	</main>

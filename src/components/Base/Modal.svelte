@@ -21,9 +21,9 @@
 
 <style>
 	dialog {
-		max-width: 32em;
-		border-radius: 0.2em;
-		border: none;
+		/* max-width: 32em; */
+		/* border-radius: 0.2em; */
+		border: none !important;;
 		padding: 0;
 	}
 	dialog::backdrop {
