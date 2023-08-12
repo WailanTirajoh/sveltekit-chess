@@ -7,7 +7,7 @@ const PLAYER_WHITE: Player = 1;
 
 const PLAYER_BLACK: Player = 2;
 
-const INITIAL_TIME = 600;
+const INITIAL_TIME = 60;
 
 const INITIAL_PLAYER_INFO = {
 	1: {
@@ -27,7 +27,52 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 		moveHistory: [],
 		name: 'rook',
 		icon: 'fa-solid:chess-rook',
-		power: 5,
+		power: 5
+	},
+	knight: {
+		possibleMoves: [],
+		possibleAttacks: [],
+		moveHistory: [],
+		name: 'knight',
+		icon: 'fa6-solid:chess-knight',
+		power: 3
+	},
+	bishop: {
+		possibleMoves: [],
+		possibleAttacks: [],
+		moveHistory: [],
+		name: 'bishop',
+		icon: 'tabler:chess-bishop-filled',
+		power: 3
+	},
+	queen: {
+		possibleMoves: [],
+		possibleAttacks: [],
+		moveHistory: [],
+		name: 'queen',
+		icon: 'fa6-solid:chess-queen',
+		power: 8
+	},
+	king: {
+		possibleMoves: [],
+		possibleAttacks: [],
+		moveHistory: [],
+		name: 'king',
+		icon: 'fa-solid:chess-king',
+		power: Infinity
+	},
+	pawn: {
+		possibleMoves: [],
+		possibleAttacks: [],
+		moveHistory: [],
+		name: 'pawn',
+		icon: 'fa-solid:chess-pawn',
+		power: 1
+	}
+};
+
+const PIECE_RULE: PieceRule = {
+	rook: {
 		rule: (chess: ChessInfo, { startPosition, finalPosition, player }: PieceMove) => {
 			const { board } = chess;
 			const [startVertical, startHorizontal] = startPosition.split('_').map(Number);
@@ -103,14 +148,7 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 		}
 	},
 	knight: {
-		possibleMoves: [],
-		possibleAttacks: [],
-		moveHistory: [],
-		name: 'knight',
-		icon: 'fa6-solid:chess-knight',
-		power: 3,
 		rule: (chess: ChessInfo, { startPosition, finalPosition, player }: PieceMove) => {
-			const { board } = chess;
 			const [startVertical, startHorizontal] = startPosition.split('_').map(Number);
 			const [finalVertical, finalHorizontal] = finalPosition.split('_').map(Number);
 
@@ -151,12 +189,6 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 		}
 	},
 	bishop: {
-		possibleMoves: [],
-		possibleAttacks: [],
-		moveHistory: [],
-		name: 'bishop',
-		icon: 'tabler:chess-bishop-filled',
-		power: 3,
 		rule: (chess: ChessInfo, { startPosition, finalPosition, player }: PieceMove) => {
 			const { board } = chess;
 			const [startVertical, startHorizontal] = startPosition.split('_').map(Number);
@@ -198,12 +230,6 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 		}
 	},
 	queen: {
-		possibleMoves: [],
-		possibleAttacks: [],
-		moveHistory: [],
-		name: 'queen',
-		icon: 'fa6-solid:chess-queen',
-		power: 8,
 		rule: (chess: ChessInfo, { startPosition, finalPosition, player }: PieceMove) => {
 			const { board } = chess;
 			const [startVertical, startHorizontal] = startPosition.split('_').map(Number);
@@ -280,12 +306,6 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 		}
 	},
 	king: {
-		possibleMoves: [],
-		possibleAttacks: [],
-		moveHistory: [],
-		name: 'king',
-		icon: 'fa-solid:chess-king',
-		power: Infinity,
 		rule: (chess: ChessInfo, { startPosition, finalPosition, player }: PieceMove) => {
 			const { board } = chess;
 			const [startVertical, startHorizontal] = startPosition.split('_').map(Number);
@@ -409,12 +429,6 @@ const CHESS_PIECE: Record<PieceName, Piece> = {
 		}
 	},
 	pawn: {
-		possibleMoves: [],
-		possibleAttacks: [],
-		moveHistory: [],
-		name: 'pawn',
-		icon: 'fa-solid:chess-pawn',
-		power: 1,
 		rule: (chess: ChessInfo, { startPosition, finalPosition, player }: PieceMove) => {
 			const [startVertical, startHorizontal] = startPosition.split('_').map(Number);
 			const [finalVertical, finalHorizontal] = finalPosition.split('_').map(Number);
@@ -721,7 +735,7 @@ const CHESS_HELPERS = {
 		}
 	) => {
 		if (startPosition === finalPosition) return false;
-		return piece.rule(chess, {
+		return PIECE_RULE[piece.name].rule(chess, {
 			startPosition,
 			finalPosition,
 			player

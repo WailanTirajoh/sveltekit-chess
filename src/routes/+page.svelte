@@ -1,5 +1,4 @@
-<script>
-	import Chess from '../components/Chess/Chess.svelte';
+<script lang="ts">
 </script>
 
 <svelte:head>
@@ -7,6 +6,4 @@
 	<meta name="description" content="Simple chess, to learn svelte" />
 </svelte:head>
 
-<section class="h-full">
-	<Chess />
-</section>
+<section class="h-full">Welcome</section>
