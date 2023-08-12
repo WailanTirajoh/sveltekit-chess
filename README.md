@@ -1,6 +1,6 @@
 # Simple Chess
 
-![image](https://github.com/WailanTirajoh/sveltekit-chess/assets/53980548/36da06d8-b5ed-4c05-b2dc-7ae9f340ba17)
+![image](https://github.com/WailanTirajoh/sveltekit-chess/assets/53980548/7f2d0c5b-79c9-487a-9315-623c9af9921a)
 Simple Chess built with SvelteKit.
 
 
@@ -33,7 +33,7 @@ Simple Chess built with SvelteKit.
 
 
 ## After All Features:
-- [ ] Multiplayer _(TBD Tech usage for realtime move)_
+- [ ] Multiplayer **(WIP)**
 - [ ] Unit Test _(TODO: findings the testcase opensource and implement it here)_
 
 ## Bug Report:
