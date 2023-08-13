@@ -217,7 +217,7 @@
 											: ''}"
 										on:click={() => {
 											enemy = enemyOption;
-											close();
+											close(null);
 										}}
 									>
 										<img src={enemyOption.photoURL} alt="" class="w-6 h-6 rounded-full" />
@@ -252,7 +252,7 @@
 										: ''}"
 									on:click={() => {
 										time = timeOption.value;
-										close();
+										close(null);
 									}}
 								>
 									<div class="">
