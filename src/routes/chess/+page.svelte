@@ -78,7 +78,7 @@
 	</div>
 	<div class="col-span-12">
 		<div class="grid gap-4">
-			<div class="grid sm:grid-cols-2 md:grid-cols-2 xl:grid-cols-3 gap-4">
+			<div class="grid sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
 				{#if isFetching}
 					<div class="text-center w-full h-44 md:h-96 bg-[#262522] rounded-lg" />
 					<div class="text-center w-full h-44 md:h-96 bg-[#262522] rounded-lg" />

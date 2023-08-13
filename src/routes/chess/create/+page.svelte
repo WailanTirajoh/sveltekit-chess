@@ -91,8 +91,10 @@
 	});
 </script>
 
-<div class="flex gap-4">
-	<ChessBoard board={INITIAL_BOARD_POSITION} />
+<div class="flex flex-col-reverse lg:flex-row gap-4">
+	<div class="hidden lg:block">
+		<ChessBoard board={INITIAL_BOARD_POSITION} />
+	</div>
 	<div class="flex flex-col gap-4 bg-[#262522] p-4 rounded w-full">
 		<div class="flex flex-col gap-4">
 			<!-- TODO: Change with checkgroup component -->
