@@ -9,12 +9,11 @@
 	import Chess from '../../../components/Chess/Chess.svelte';
 	import { auth, db } from '$lib/firebase/firebase';
 	import {
-		DocumentReference,
 		doc,
 		getDoc,
 		setDoc,
-		type DocumentData,
-		onSnapshot
+		onSnapshot,
+		serverTimestamp
 	} from 'firebase/firestore';
 	import { onDestroy, onMount } from 'svelte';
 	import Modal from '../../../components/Base/Modal.svelte';
@@ -25,12 +24,11 @@
 	export let data;
 
 	let chess: ChessInfo;
-	let chessRef: DocumentReference<DocumentData, DocumentData>;
+	let chessRef = doc(db, 'chess', data.slug);
 	let unsubscribe: Unsubscribe;
 
 	async function syncData() {
-		chessRef = doc(db, 'chess', data.slug);
-		await setDoc(chessRef, chess);
+		await setDoc(chessRef, { ...chess, updatedAt: serverTimestamp() });
 	}
 
 	// PlayAs
@@ -55,7 +53,6 @@
 
 			const docRef = doc(db, 'chess', data.slug);
 			const docSnap = await getDoc(docRef);
-			chessRef = doc(db, 'chess', data.slug);
 
 			const userData: UserInfo = {
 				uid: user.uid,
@@ -66,7 +63,7 @@
 
 			if (!docSnap.exists()) {
 				const playAs = await choosePlayAs();
-				const chessInitialData = {
+				const chessInitialData: ChessInfo = {
 					id: data.slug,
 					board: INITIAL_BOARD_POSITION,
 					moveHistory: [],
@@ -78,12 +75,12 @@
 					winner: {
 						player: null,
 						type: null
-					}
+					},
+					createdAt: serverTimestamp()
 				};
 				await setDoc(chessRef, chessInitialData);
 			} else {
-				const chessData = docSnap.data();
-				chess = chessData as ChessInfo;
+				chess = docSnap.data() as ChessInfo;
 				if (
 					(!chess.playerBlack || !chess.playerWhite) &&
 					![chess.playerBlack?.uid, chess.playerWhite?.uid].includes(userData.uid)
@@ -98,7 +95,7 @@
 				}
 			}
 
-			unsubscribe = onSnapshot(doc(db, 'chess', data.slug), (doc) => {
+			unsubscribe = onSnapshot(chessRef, (doc) => {
 				chess = doc.data() as ChessInfo;
 			});
 		});
@@ -160,7 +157,7 @@
 	</div> -->
 	<div class="col-span-12">
 		{#if chess}
-			<Chess bind:chessGame={chess} on:onMove={() => syncData()} on:gameOver={() => syncData()} />
+			<Chess bind:chessGame={chess} on:move={() => syncData()} on:gameOver={() => syncData()} />
 		{/if}
 	</div>
 </div>

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { PLAYER_BLACK } from '$lib/chess/core';
+	import { formatTime } from '$lib/utils/time';
 
 	export let timeLeft: number;
 	export let initialTime: number;
@@ -18,7 +19,7 @@
 	style={barStyle}
 >
 	<div class="absolute left-2">
-		{timeLeft}
+		{formatTime(timeLeft)}
 	</div>
 	{#if lifetimePercent < 20}
 		<span

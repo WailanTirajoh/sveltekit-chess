@@ -182,7 +182,7 @@
 
 		chessGame.moveCount++;
 
-		dispatch('onMove', {
+		dispatch('move', {
 			chessGame
 		});
 	}

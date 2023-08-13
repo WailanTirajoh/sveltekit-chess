@@ -1,3 +1,5 @@
+import type { FieldValue } from "firebase/firestore";
+
 declare global {
 	type Player = 1 | 2;
 	type PieceName = 'rook' | 'knight' | 'bishop' | 'queen' | 'king' | 'pawn';
@@ -79,8 +81,8 @@ declare global {
 		playerWhite: UserInfo | null;
 		playerBlack: UserInfo | null;
 		winner: Winner;
-		createdAt?: Date;
-		updatedAt?: Date;
+		createdAt?: FieldValue;
+		updatedAt?: FieldValue;
 	}
 }
 
