@@ -15,7 +15,7 @@
 		QuerySnapshot,
 		type DocumentData
 	} from 'firebase/firestore';
-	import { authStore } from '../../stores/store';
+	import { authStore } from '../../stores/auth';
 	import ChessBoard from '../../components/Chess/ChessBoard.svelte';
 	import Button from '../../components/Base/Button.svelte';
 	import Icon from '@iconify/svelte';
@@ -28,7 +28,7 @@
 	$: endOfFile = chessGames.length % limitData !== 0;
 
 	function onCreateNewGame() {
-		goto(`/chess/${uuidv4()}`);
+		goto(`/chess/create`);
 	}
 
 	async function generateData(query: Query<DocumentData, DocumentData>) {
@@ -43,8 +43,8 @@
 		const q = query(
 			collection(db, 'chess'),
 			or(
-				where('playerBlack.email', '==', $authStore.data?.email),
-				where('playerWhite.email', '==', $authStore.data?.email)
+				where('playerBlack.email', '==', $authStore.user?.email),
+				where('playerWhite.email', '==', $authStore.user?.email)
 			),
 			startAfter(querySnapshot.docs[querySnapshot.docs.length - 1]),
 			limit(limitData)
@@ -57,8 +57,8 @@
 		const q = query(
 			collection(db, 'chess'),
 			or(
-				where('playerBlack.email', '==', $authStore.data?.email),
-				where('playerWhite.email', '==', $authStore.data?.email)
+				where('playerBlack.email', '==', $authStore.user?.email),
+				where('playerWhite.email', '==', $authStore.user?.email)
 			),
 			limit(limitData)
 		);
@@ -98,7 +98,7 @@
 									{#if chessGame.playerWhite}
 										<img
 											class="w-16 h-16 rounded object-contain"
-											src={chessGame.playerWhite.photoUrl}
+											src={chessGame.playerWhite.photoURL}
 											alt={chessGame.playerWhite.displayName}
 										/>
 										<div class="">
@@ -114,7 +114,7 @@
 									{#if chessGame.playerBlack}
 										<img
 											class="w-16 h-16 rounded object-contain"
-											src={chessGame.playerBlack.photoUrl}
+											src={chessGame.playerBlack.photoURL}
 											alt={chessGame.playerBlack.displayName}
 										/>
 										<div class="">

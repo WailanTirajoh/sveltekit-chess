@@ -14,7 +14,7 @@
 		INITIAL_BOARD_POSITION,
 		INITIAL_TIME
 	} from '$lib/chess/core';
-	import { authStore } from '../../stores/store';
+	import { authStore } from '../../stores/auth';
 	import { uuidv4 } from '$lib/utils/uuid';
 
 	// Chess Information
@@ -22,15 +22,15 @@
 	export let previewOnly: boolean = false;
 
 	const dispatch = createEventDispatcher();
+	$: authUser = $authStore.user;
 
 	// Game Info
 	let activePiece: ActivePiece | null = null;
-	$: rotateBoard = chessGame.playerWhite?.email === $authStore.data?.email;
+	$: rotateBoard = chessGame.playerWhite?.email === authUser?.email;
 	$: viewer = ![chessGame.playerWhite?.email, chessGame.playerBlack?.email].includes(
-		$authStore.data.email
+		authUser?.email
 	);
-	$: authPlayer =
-		chessGame.playerWhite?.email === $authStore.data?.email ? PLAYER_WHITE : PLAYER_BLACK;
+	$: authPlayer = chessGame.playerWhite?.email === authUser?.email ? PLAYER_WHITE : PLAYER_BLACK;
 	$: lastMove = chessGame.moveHistory[chessGame.moveHistory.length - 1];
 
 	function onCellClick(position: ChessPosition) {
@@ -142,7 +142,8 @@
 			([_, boardPiece]) =>
 				boardPiece?.player !== chessGame.currentPlayer && boardPiece?.piece.name === 'king'
 		)?.[0]!;
-		const isCheck = chessGame.board[finalPosition]?.piece.possibleAttacks.includes(enemyKingPosition)
+		const isCheck =
+			chessGame.board[finalPosition]?.piece.possibleAttacks.includes(enemyKingPosition);
 		if (isCheck) {
 			alert('check');
 			const routeToCheck = [
@@ -382,7 +383,7 @@
 			{#if authPlayer === PLAYER_BLACK}
 				{#if chessGame.playerWhite}
 					<div class="flex items-start gap-2">
-						<img class="w-8 h-8 rounded" src={chessGame.playerWhite.photoUrl} alt="" />
+						<img class="w-8 h-8 rounded" src={chessGame.playerWhite.photoURL} alt="" />
 						{chessGame.playerWhite.displayName}
 					</div>
 				{:else}
@@ -390,7 +391,7 @@
 				{/if}
 			{:else if chessGame.playerBlack}
 				<div class="flex items-start gap-2">
-					<img class="w-8 h-8 rounded" src={chessGame.playerBlack.photoUrl} alt="" />
+					<img class="w-8 h-8 rounded" src={chessGame.playerBlack.photoURL} alt="" />
 					{chessGame.playerBlack.displayName}
 				</div>
 			{:else}
@@ -497,7 +498,7 @@
 			{#if authPlayer === PLAYER_WHITE}
 				{#if chessGame.playerWhite}
 					<div class="flex items-start gap-2">
-						<img class="w-8 h-8 rounded" src={chessGame.playerWhite.photoUrl} alt="" />
+						<img class="w-8 h-8 rounded" src={chessGame.playerWhite.photoURL} alt="" />
 						{chessGame.playerWhite.displayName}
 					</div>
 				{:else}
@@ -505,7 +506,7 @@
 				{/if}
 			{:else if chessGame.playerBlack}
 				<div class="flex items-start gap-2">
-					<img class="w-8 h-8 rounded" src={chessGame.playerBlack.photoUrl} alt="" />
+					<img class="w-8 h-8 rounded" src={chessGame.playerBlack.photoURL} alt="" />
 					{chessGame.playerBlack.displayName}
 				</div>
 			{:else}

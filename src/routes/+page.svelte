@@ -1,13 +1,13 @@
 <script lang="ts">
 	import Button from '../components/Base/Button.svelte';
-	import { authHandlers } from '../stores/store';
+	import { authHandlers } from '../stores/auth';
 
 	async function handleLoginGoogle() {
-		try {
+		// try {
 			await authHandlers.loginWithGoogle();
-		} catch (error) {
-			console.log('Error:', error);
-		}
+		// } catch (error) {
+		// 	console.log('Error:', error);
+		// }
 	}
 </script>
 

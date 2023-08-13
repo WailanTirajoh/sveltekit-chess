@@ -1,20 +1,13 @@
 import { writable } from 'svelte/store';
-import { signInWithPopup, signOut, type UserInfo } from 'firebase/auth';
+import { signInWithPopup, signOut } from 'firebase/auth';
 import { auth, googleProvider } from '$lib/firebase/firebase';
 
-export interface AuthUserData {
-	email: string | null;
-}
 export interface AuthStore {
-	user: UserInfo | null;
-	data: AuthUserData;
+	user: User | null;
 }
 
 export const authStore = writable<AuthStore>({
-	user: null,
-	data: {
-		email: null
-	}
+	user: null
 });
 
 export const authHandlers = {

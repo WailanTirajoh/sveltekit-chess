@@ -2,80 +2,64 @@
 	import '../app.css';
 	import { onDestroy, onMount } from 'svelte';
 	import { auth, db } from '$lib/firebase/firebase';
-	import { authHandlers, authStore, type AuthUserData } from '../stores/store';
-	import { doc, getDoc, setDoc } from 'firebase/firestore';
-	import Button from '../components/Base/Button.svelte';
+	import { authStore } from '../stores/auth';
 	import { page } from '$app/stores';
-	import { Popover, PopoverButton, PopoverPanel } from '@rgossiaux/svelte-headlessui';
-	import { createPopperActions } from 'svelte-popperjs';
 	import type { Unsubscribe } from 'firebase/auth';
-	import Icon from '@iconify/svelte';
+	import { doc, getDoc, setDoc } from 'firebase/firestore';
+	import Header from '../components/Shared/Header.svelte';
 
 	const nonAuthRoutes = ['/'];
 
-	async function handleLogout() {
-		try {
-			await authHandlers.logout();
-		} catch (error) {
-			console.log('Error:', error);
-		}
-	}
-
-	// Popover
-	const [popperRef, popperContent] = createPopperActions();
-	const popperOptions = {
-		placement: 'bottom-end',
-		strategy: 'fixed',
-		modifiers: [{ name: 'offset', options: { offset: [0, 10] } }]
-	};
-	// End Popover
-
 	let loadAuth = true;
 	let unsubscribe: Unsubscribe;
+
 	onMount(() => {
 		unsubscribe = auth.onAuthStateChanged(async (user) => {
 			const currentPath = $page.url.pathname;
 
-			if (!user && !nonAuthRoutes.includes(currentPath)) {
-				window.location.href = '/';
-				return;
+			if (!user) {
+				if (!nonAuthRoutes.includes(currentPath)) {
+					window.location.href = '/';
+					return;
+				}
 			}
 
 			if (user && currentPath === '/') {
-				window.location.href = '/dashboard';
+				window.location.href = '/chess';
 				return;
 			}
 
-			if (!user) {
-				await new Promise((resolve) => setTimeout(resolve, 500));
-				loadAuth = false;
-				return;
-			}
+			if (user) {
+				const userInfo: User = {
+					displayName: user.displayName,
+					email: user.email,
+					phoneNumber: user.phoneNumber,
+					photoURL: user.photoURL,
+					uid: user.uid
+				};
 
-			let userStore: AuthUserData;
-			const docRef = doc(db, 'users', user.uid);
-			const docSnap = await getDoc(docRef);
-
-			if (!docSnap.exists()) {
 				const userRef = doc(db, 'users', user.uid);
-				userStore = {
-					email: user.email
-				};
-				await setDoc(userRef, userStore, {
-					merge: true
-				});
-			} else {
-				const userData = docSnap.data();
-				userStore = userData as AuthUserData;
-			}
+				const userSnap = await getDoc(userRef);
 
-			authStore.update((curr) => {
-				return {
-					...curr,
-					user,
-					data: userStore
-				};
-			});
+				// Create user when the user not exists on our db.
+				if (!userSnap.exists()) {
+					await setDoc(userRef, userInfo, {
+						merge: true
+					});
+				}
+				authStore.update((curr) => {
+					return {
+						...curr,
+						user: {
+							displayName: user.displayName,
+							email: user.email,
+							phoneNumber: user.phoneNumber,
+							photoURL: user.photoURL,
+							uid: user.uid
+						}
+					};
+				});
+			}
 			loadAuth = false;
 		});
 	});
@@ -88,6 +72,7 @@
 <div class="app">
 	<main class="bg-[#302e2b] h-full min-h-[100svh] text-white">
 		{#if loadAuth}
+			<!-- Loading Layout -->
 			<div class="loading-container">
 				<div class="loading">
 					<svg
@@ -159,43 +144,13 @@
 				</div>
 			</div>
 		{:else if $authStore.user}
-			<header
-				class="flex items-center justify-between p-2 bg-[#282724] shadow-inner z-20 fixed top-0 w-full h-11 border-b border-b-[#3c3b39]"
-			>
-				<div class="" />
-				<div class="">
-					<Popover style="position: relative;">
-						<PopoverButton class="flex items-center" use={[popperRef]}>
-							<img
-								class="rounded-full w-8 h-8"
-								src={$authStore.user.photoURL}
-								alt={$authStore.user.displayName}
-							/>
-						</PopoverButton>
-
-						<PopoverPanel
-							class="bg-[#282724] border border-[#3c3b39] rounded shadow overflow-hidden z-20"
-							use={[[popperContent, popperOptions]]}
-						>
-							<ul>
-								<li>
-									<Button
-										variant="unstyled"
-										class="w-36 bg-[#282724] hover:bg-[#1c1b19] p-2"
-										on:click={handleLogout}
-									>
-										Logout
-									</Button>
-								</li>
-							</ul>
-						</PopoverPanel>
-					</Popover>
-				</div>
-			</header>
+			<!-- Auth Layout -->
+			<Header />
 			<div class="pt-16 md:px-2">
 				<slot />
 			</div>
 		{:else}
+			<!-- Gues Layout -->
 			<slot />
 		{/if}
 	</main>

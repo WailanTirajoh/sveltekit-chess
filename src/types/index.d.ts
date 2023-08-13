@@ -1,4 +1,5 @@
-import type { FieldValue } from "firebase/firestore";
+import type { UserInfo } from 'firebase/auth';
+import type { FieldValue } from 'firebase/firestore';
 
 declare global {
 	type Player = 1 | 2;
@@ -64,12 +65,7 @@ declare global {
 		type: string | null;
 	}
 
-	interface UserInfo {
-		uid: string;
-		displayName: string | null;
-		email: string | null;
-		photoUrl: string | null;
-	}
+	type User = Omit<UserInfo, 'providerId'>;
 
 	interface ChessInfo {
 		id: string;
@@ -78,9 +74,10 @@ declare global {
 		players: PlayerInfo;
 		moveCount: number;
 		currentPlayer: Player;
-		playerWhite: UserInfo | null;
-		playerBlack: UserInfo | null;
+		playerWhite: User | null;
+		playerBlack: User | null;
 		winner: Winner;
+		initialTime: number;
 		createdAt?: FieldValue;
 		updatedAt?: FieldValue;
 	}
