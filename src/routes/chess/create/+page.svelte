@@ -101,52 +101,7 @@
 			<div class="flex flex-col gap-2">
 				<label for=""> Play As</label>
 				<RadioGroup class="flex gap-2" bind:value={playAs}>
-					<RadioGroupOption value={1} let:checked let:active>
-						<div
-							class="relative flex cursor-pointer rounded-lg px-5 py-4 shadow-md focus:outline-none border border-[#3c3b39] {checked
-								? 'bg-[#312e2b] bg-opacity-75 text-white '
-								: 'bg-[#262522] '} {active
-								? 'ring-2 ring-white ring-opacity-60 ring-offset-2 ring-offset-sky-300 312e2b'
-								: ''}"
-						>
-							<div class="flex w-full items-center justify-between">
-								<div class="flex items-center">
-									<div class="text-sm flex flex-col gap-2 items-center">
-										<RadioGroupLabel
-											as="p"
-											class="font-medium {checked ? 'text-white' : 'text-gray-900'}"
-										>
-											<Icon
-												icon={CHESS_PIECE.king.icon}
-												class="w-20 h-20 duration-300 pt-2 text-black"
-											/>
-										</RadioGroupLabel>
-										<RadioGroupDescription
-											as="span"
-											class="inline {checked ? 'text-sky-100' : 'text-gray-500'}"
-										>
-											<span>Black</span>
-										</RadioGroupDescription>
-									</div>
-								</div>
-								{#if checked}
-									<div class="shrink-0 text-white absolute -top-2 -right-2">
-										<svg class="h-6 w-6" viewBox="0 0 24 24" fill="none">
-											<circle cx="12" cy="12" r="12" fill="#fff" fill-opacity="0.2" />
-											<path
-												d="M7 13l3 3 7-7"
-												stroke="#fff"
-												stroke-width="1.5"
-												stroke-linecap="round"
-												stroke-linejoin="round"
-											/>
-										</svg>
-									</div>
-								{/if}
-							</div>
-						</div>
-					</RadioGroupOption>
-					<RadioGroupOption value={2} let:checked let:active>
+					<RadioGroupOption value={PLAYER_WHITE} let:checked let:active>
 						<div
 							class="relative flex cursor-pointer rounded-lg px-5 py-4 shadow-md focus:outline-none border border-[#3c3b39] {checked
 								? 'bg-[#312e2b] bg-opacity-75 text-white '
@@ -171,6 +126,51 @@
 											class="inline {checked ? 'text-sky-100' : 'text-gray-500'}"
 										>
 											<span>White</span>
+										</RadioGroupDescription>
+									</div>
+								</div>
+								{#if checked}
+									<div class="shrink-0 text-white absolute -top-2 -right-2">
+										<svg class="h-6 w-6" viewBox="0 0 24 24" fill="none">
+											<circle cx="12" cy="12" r="12" fill="#fff" fill-opacity="0.2" />
+											<path
+												d="M7 13l3 3 7-7"
+												stroke="#fff"
+												stroke-width="1.5"
+												stroke-linecap="round"
+												stroke-linejoin="round"
+											/>
+										</svg>
+									</div>
+								{/if}
+							</div>
+						</div>
+					</RadioGroupOption>
+					<RadioGroupOption value={PLAYER_BLACK} let:checked let:active>
+						<div
+							class="relative flex cursor-pointer rounded-lg px-5 py-4 shadow-md focus:outline-none border border-[#3c3b39] {checked
+								? 'bg-[#312e2b] bg-opacity-75 text-white '
+								: 'bg-[#262522] '} {active
+								? 'ring-2 ring-white ring-opacity-60 ring-offset-2 ring-offset-sky-300 312e2b'
+								: ''}"
+						>
+							<div class="flex w-full items-center justify-between">
+								<div class="flex items-center">
+									<div class="text-sm flex flex-col gap-2 items-center">
+										<RadioGroupLabel
+											as="p"
+											class="font-medium {checked ? 'text-white' : 'text-gray-900'}"
+										>
+											<Icon
+												icon={CHESS_PIECE.king.icon}
+												class="w-20 h-20 duration-300 pt-2 text-black"
+											/>
+										</RadioGroupLabel>
+										<RadioGroupDescription
+											as="span"
+											class="inline {checked ? 'text-sky-100' : 'text-gray-500'}"
+										>
+											<span>Black</span>
 										</RadioGroupDescription>
 									</div>
 								</div>
