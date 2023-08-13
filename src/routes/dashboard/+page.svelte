@@ -2,26 +2,64 @@
 	import { goto } from '$app/navigation';
 	import { uuidv4 } from '$lib/utils/uuid';
 	import { onMount } from 'svelte';
-	import Button from '../../components/Base/Button.svelte';
 	import { db } from '$lib/firebase/firebase';
-	import { collection, doc, getDocs, onSnapshot } from 'firebase/firestore';
+	import {
+		collection,
+		getDocs,
+		limit,
+		or,
+		query,
+		where,
+		startAfter,
+		Query,
+		QuerySnapshot,
+		type DocumentData
+	} from 'firebase/firestore';
 	import { authStore } from '../../stores/store';
 	import ChessBoard from '../../components/Chess/ChessBoard.svelte';
+	import Button from '../../components/Base/Button.svelte';
 	import Icon from '@iconify/svelte';
+
+	const limitData = 6;
+	let chessGames: Array<ChessInfo> = [];
+	let querySnapshot: QuerySnapshot<DocumentData, DocumentData>;
+	$: endOfFile = chessGames.length % limitData !== 0;
 
 	function onCreateNewGame() {
 		goto(`/chess/${uuidv4()}`);
 	}
 
-	let chessGames: Array<ChessInfo> = [];
-	onMount(async () => {
-		const q = collection(db, 'chess');
-
-		const querySnapshot = await getDocs(q);
+	async function generateData(query: Query<DocumentData, DocumentData>) {
+		querySnapshot = await getDocs(query);
 		querySnapshot.forEach((doc) => {
 			const d = doc.data() as ChessInfo;
 			chessGames = [...chessGames, d];
 		});
+	}
+
+	function loadMore() {
+		const q = query(
+			collection(db, 'chess'),
+			or(
+				where('playerBlack.email', '==', $authStore.data?.email),
+				where('playerWhite.email', '==', $authStore.data?.email)
+			),
+			startAfter(querySnapshot.docs[querySnapshot.docs.length - 1]),
+			limit(limitData)
+		);
+		generateData(q);
+	}
+
+	onMount(async () => {
+		const q = query(
+			collection(db, 'chess'),
+			or(
+				where('playerBlack.email', '==', $authStore.data?.email),
+				where('playerWhite.email', '==', $authStore.data?.email)
+			),
+			limit(limitData)
+		);
+		generateData(q);
 	});
 </script>
 
@@ -40,9 +78,7 @@
 				{#if chessGames.length > 0}
 					{#each chessGames as chessGame}
 						<div class="bg-[#262522] p-2 rounded flex flex-col gap-4 py-4">
-							{#if $authStore.data.email}
-								<ChessBoard boardSize="xxs" board={chessGame.board} />
-							{/if}
+							<ChessBoard boardSize="xxs" board={chessGame.board} />
 							<div class="">
 								<hr class="border-[#3c3b39]" />
 							</div>
@@ -89,6 +125,11 @@
 					<div class="text-center w-full h-44 md:h-96 bg-[#262522] rounded-lg" />
 					<div class="text-center w-full h-44 md:h-96 bg-[#262522] rounded-lg" />
 					<div class="text-center w-full h-44 md:h-96 bg-[#262522] rounded-lg" />
+				{/if}
+			</div>
+			<div class="flex justify-center">
+				{#if !endOfFile}
+					<Button on:click={() => loadMore()} disabled={endOfFile}>Load More</Button>
 				{/if}
 			</div>
 		</div>

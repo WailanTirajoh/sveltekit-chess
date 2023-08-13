@@ -24,14 +24,14 @@
 	const dispatch = createEventDispatcher();
 
 	// Game Info
-	$: rotateBoard = chessGame.playerWhite?.email === $authStore.data?.email;
 	let activePiece: ActivePiece | null = null;
+	$: rotateBoard = chessGame.playerWhite?.email === $authStore.data?.email;
 	$: viewer = ![chessGame.playerWhite?.email, chessGame.playerBlack?.email].includes(
 		$authStore.data.email
 	);
 	$: authPlayer =
 		chessGame.playerWhite?.email === $authStore.data?.email ? PLAYER_WHITE : PLAYER_BLACK;
-	$: lastMove = chessGame.moveHistory[-1]
+	$: lastMove = chessGame.moveHistory[chessGame.moveHistory.length - 1];
 
 	function onCellClick(position: ChessPosition) {
 		// Viewer cant do anything
@@ -58,12 +58,6 @@
 
 	function setActivePiece(piece: PlayerPiece, position: ChessPosition) {
 		activePiece = { ...piece, position };
-		// const pieceOnPosition = board[position]!;
-		// pieceOnPosition.piece.possibleMoves = CHESS_HELPERS.legalMoves(board, {
-		// 	piece: pieceOnPosition.piece,
-		// 	player: pieceOnPosition.player,
-		// 	startPosition: position
-		// });
 	}
 
 	async function movePiece(
@@ -111,10 +105,12 @@
 				finalHorizontal - startHorizontal > 0
 					? `${startVertical}_${finalHorizontal + 1}`
 					: `${startVertical}_${finalHorizontal - 2}`;
+
 			const rookFinalPosition =
 				finalHorizontal - startHorizontal > 0
 					? `${startVertical}_${startHorizontal + 1}`
 					: `${startVertical}_${startHorizontal - 1}`;
+
 			updateCellPosition(rookStartPosition, rookFinalPosition);
 
 			updateCellPosition(startPosition, finalPosition);
@@ -146,10 +142,10 @@
 			([_, boardPiece]) =>
 				boardPiece?.player !== chessGame.currentPlayer && boardPiece?.piece.name === 'king'
 		)?.[0]!;
-		let routeToCheck: Array<ChessPosition> = [];
-		if (chessGame.board[finalPosition]?.piece.possibleAttacks.includes(enemyKingPosition)) {
+		const isCheck = chessGame.board[finalPosition]?.piece.possibleAttacks.includes(enemyKingPosition)
+		if (isCheck) {
 			alert('check');
-			routeToCheck = [
+			const routeToCheck = [
 				...CHESS_HELPERS.generateMoveRoutes(finalPosition, enemyKingPosition),
 				finalPosition,
 				enemyKingPosition
@@ -183,6 +179,8 @@
 
 		if (timeinterval) clearInterval(timeinterval);
 		timeinterval = setInterval(timeCountDown, 1000);
+
+		chessGame.moveCount++;
 
 		dispatch('onMove', {
 			chessGame
@@ -326,7 +324,6 @@
 	onMount(() => {
 		chessGame.board = CHESS_HELPERS.generateAllLegalMoves(chessGame);
 		if (!chessGame.playerWhite || !chessGame.playerBlack || !!chessGame.winner.type) {
-			console.log('in');
 			if (timeinterval) clearInterval(timeinterval);
 			return;
 		} else {
@@ -400,7 +397,9 @@
 				No Opponent
 			{/if}
 		</div>
-		<div class="relative w-full h-full flex flex-col justify-between overflow-hidden rounded-lg bg-[#282724]">
+		<div
+			class="relative w-full h-full flex flex-col justify-between overflow-hidden rounded-lg bg-[#282724]"
+		>
 			<BaseButton
 				class="absolute top-10 right-4 rounded z-10 hidden"
 				on:click={() => {
@@ -437,7 +436,7 @@
 					{activePiece}
 					board={chessGame.board}
 					rotate={rotateBoard}
-					lastMove={chessGame.moveHistory[chessGame.moveHistory.length - 1]}
+					{lastMove}
 				>
 					<div slot="cell" let:position>
 						{@const piece = chessGame.board[position]}

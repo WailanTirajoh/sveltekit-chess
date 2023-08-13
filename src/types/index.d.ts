@@ -79,6 +79,8 @@ declare global {
 		playerWhite: UserInfo | null;
 		playerBlack: UserInfo | null;
 		winner: Winner;
+		createdAt?: Date;
+		updatedAt?: Date;
 	}
 }
 
