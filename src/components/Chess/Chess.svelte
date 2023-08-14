@@ -328,6 +328,7 @@
 			if (timeinterval) clearInterval(timeinterval);
 			return;
 		} else {
+			if (chessGame.moveHistory.length === 0) return;
 			timeinterval = setInterval(timeCountDown, 1000);
 		}
 	});
@@ -411,7 +412,7 @@
 			</BaseButton>
 			<ChessTime
 				timeLeft={chessGame.players[authPlayer === 1 ? 2 : 1].time}
-				initialTime={INITIAL_TIME}
+				initialTime={chessGame.initialTime}
 				player={authPlayer === 1 ? 2 : 1}
 			/>
 			<div class="flex flex-col gap-1 justify-center bg-[#282724] p-1 md:p-4">
@@ -490,7 +491,7 @@
 			</div>
 			<ChessTime
 				timeLeft={chessGame.players[authPlayer].time}
-				initialTime={INITIAL_TIME}
+				initialTime={chessGame.initialTime}
 				player={authPlayer}
 			/>
 		</div>

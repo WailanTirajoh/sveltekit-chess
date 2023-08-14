@@ -17,9 +17,8 @@ export const userHandlers = {
 		const docSnap = await getDocs(userRef);
 		const users: Array<User> = [];
 		docSnap.forEach((doc) => {
-			const d = doc.data() as User;
-			console.log(d)
-			users.push(d);
+			const user = doc.data() as User;
+			users.push(user);
 		});
 		userStore.set({
 			users: users

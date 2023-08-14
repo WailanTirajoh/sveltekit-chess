@@ -2,7 +2,6 @@
 	import {
 		CHESS_PIECE,
 		INITIAL_BOARD_POSITION,
-		INITIAL_PLAYER_INFO,
 		PLAYER_BLACK,
 		PLAYER_WHITE
 	} from '$lib/chess/core';
@@ -80,8 +79,8 @@
 		await setDoc(chessRef, chessInitialData);
 
 		isSubmitting = false;
-		const url = `/chess/${id}`;
-		goto(url);
+
+		goto(`/chess/${id}`);
 	}
 
 	onMount(async () => {

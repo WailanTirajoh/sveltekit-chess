@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { uuidv4 } from '$lib/utils/uuid';
 	import { onMount } from 'svelte';
 	import { db } from '$lib/firebase/firebase';
 	import {
@@ -19,12 +18,13 @@
 	import ChessBoard from '../../components/Chess/ChessBoard.svelte';
 	import Button from '../../components/Base/Button.svelte';
 	import Icon from '@iconify/svelte';
+	import { PLAYER_BLACK, PLAYER_WHITE } from '$lib/chess/core';
 
 	const limitData = 6;
 	let chessGames: Array<ChessInfo> = [];
 	let querySnapshot: QuerySnapshot<DocumentData, DocumentData>;
 	let isFetching: boolean = false;
-	
+
 	$: endOfFile = chessGames.length % limitData !== 0;
 
 	function onCreateNewGame() {
@@ -94,12 +94,18 @@
 								<hr class="border-[#3c3b39]" />
 							</div>
 							<div class="p-2 text-center flex justify-center items-center gap-4">
-								<div class="flex flex-col items-center gap-1">
+								<div class="flex flex-col items-center gap-1 relative">
+									{#if chessGame.winner.player === PLAYER_WHITE}
+										<div class="absolute -top-5">
+											<Icon icon="fa-solid:crown" />
+										</div>
+									{/if}
 									{#if chessGame.playerWhite}
 										<img
 											class="w-16 h-16 rounded object-contain"
 											src={chessGame.playerWhite.photoURL}
 											alt={chessGame.playerWhite.displayName}
+											draggable="false"
 										/>
 										<div class="">
 											{chessGame.playerWhite.displayName}
@@ -110,12 +116,18 @@
 									{/if}
 								</div>
 								<div class="">VS</div>
-								<div class="flex flex-col items-center gap-1">
+								<div class="flex flex-col items-center gap-1 relative">
+									{#if chessGame.winner.player === PLAYER_BLACK}
+										<div class="absolute -top-5">
+											<Icon icon="fa-solid:crown" />
+										</div>
+									{/if}
 									{#if chessGame.playerBlack}
 										<img
 											class="w-16 h-16 rounded object-contain"
 											src={chessGame.playerBlack.photoURL}
 											alt={chessGame.playerBlack.displayName}
+											draggable="false"
 										/>
 										<div class="">
 											{chessGame.playerBlack.displayName}

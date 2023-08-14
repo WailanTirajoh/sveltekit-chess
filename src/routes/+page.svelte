@@ -3,11 +3,7 @@
 	import { authHandlers } from '../stores/auth';
 
 	async function handleLoginGoogle() {
-		// try {
-			await authHandlers.loginWithGoogle();
-		// } catch (error) {
-		// 	console.log('Error:', error);
-		// }
+		await authHandlers.loginWithGoogle();
 	}
 </script>
 
