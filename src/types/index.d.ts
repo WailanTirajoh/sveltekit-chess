@@ -81,6 +81,22 @@ declare global {
 		createdAt?: FieldValue;
 		updatedAt?: FieldValue;
 	}
+
+	// serverTimestamp() is not currently supported inside arrays
+	interface Chat {
+		id: string;
+		from: User;
+		message: string;
+		createdAt?: string;
+		updatedAt?: string;
+	}
+	interface ChatHistory {
+		id: string;
+		type: string;
+		chats: Array<Chat>;
+		createdAt?: FieldValue;
+		updatedAt?: FieldValue;
+	}
 }
 
 export {};
