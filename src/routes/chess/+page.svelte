@@ -27,10 +27,6 @@
 
 	$: endOfFile = chessGames.length % limitData !== 0;
 
-	function onCreateNewGame() {
-		goto(`/chess/create`);
-	}
-
 	async function generateData(query: Query<DocumentData, DocumentData>) {
 		querySnapshot = await getDocs(query);
 		querySnapshot.forEach((doc) => {
@@ -67,9 +63,13 @@
 	});
 </script>
 
+<svelte:head>
+	<title>Dashboard</title>
+</svelte:head>
+
 <div class="grid grid-cols-12 gap-4">
 	<div class="col-span-12">
-		<Button on:click={() => onCreateNewGame()}>
+		<Button href="/chess/create">
 			<div class="flex gap-2 items-center">
 				<Icon icon="bxs:chess" />
 				Create New Game
@@ -138,9 +138,7 @@
 									{/if}
 								</div>
 							</div>
-							<a class="w-full" href={`/chess/${chessGame.id}`}>
-								<Button class="w-full">Go</Button>
-							</a>
+							<Button href={`/chess/${chessGame.id}`} class="w-full">Go</Button>
 						</div>
 					{/each}
 				{/if}
