@@ -7,7 +7,7 @@
 
 	export let data;
 
-	let chess: ChessInfo;
+	let chess: ChessInfo | null = null;
 	let chessRef = doc(db, 'chess', data.slug);
 
 	async function syncData() {
@@ -22,6 +22,10 @@
 		if (unsubscribe) unsubscribe();
 	});
 </script>
+
+<svelte:head>
+	<title>{chess?.playerWhite?.displayName} vs {chess?.playerBlack?.displayName}</title>
+</svelte:head>
 
 <div class="grid grid-cols-12 gap-4">
 	<div class="col-span-12">

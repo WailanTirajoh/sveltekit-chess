@@ -12,6 +12,7 @@
 	};
 
 	$: component = href === undefined ? 'button' : 'a';
+	$: role = component === 'button' ? 'button' : 'link';
 </script>
 
 <svelte:element
@@ -23,6 +24,8 @@
 	{$$props.disabled ? '!cursor-not-allowed' : ''} 
 	{component === 'a' ? 'inline-block text-center' : ''}"
 	{href}
+	{role}
+	on:click
 >
 	<slot />
 </svelte:element>

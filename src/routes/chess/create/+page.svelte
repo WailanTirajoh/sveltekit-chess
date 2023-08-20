@@ -90,6 +90,10 @@
 	});
 </script>
 
+<svelte:head>
+	<title>Create New Game</title>
+</svelte:head>
+
 <div class="flex flex-col-reverse lg:flex-row gap-4">
 	<div class="hidden lg:block">
 		<ChessBoard board={INITIAL_BOARD_POSITION} />
